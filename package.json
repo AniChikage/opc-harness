@@ -1,0 +1,48 @@
+{
+  "name": "opc-harness",
+  "version": "0.2.0",
+  "description": "A project-local website delivery harness for Codex and Claude Code",
+  "homepage": "https://github.com/AniChikage/opc-harness#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AniChikage/opc-harness.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AniChikage/opc-harness/issues"
+  },
+  "keywords": [
+    "codex",
+    "claude-code",
+    "harness",
+    "skills",
+    "cloudflare",
+    "stripe"
+  ],
+  "type": "module",
+  "bin": {
+    "opc": "bin/opc.mjs",
+    "opc-harness": "bin/opc.mjs"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates",
+    "skills",
+    "README.md",
+    "README.zh-CN.md",
+    "docs",
+    "npm-shrinkwrap.json",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check bin/opc.mjs && node --check src/core.mjs && node --check src/global.mjs && node --check src/workflows.mjs"
+  },
+  "dependencies": {
+    "wrangler": "4.156.2"
+  },
+  "license": "MIT"
+}

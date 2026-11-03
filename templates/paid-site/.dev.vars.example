@@ -1,0 +1,5 @@
+# Copy to .dev.vars only when selecting Stripe TEST mode.
+# Never commit .dev.vars. Set remote values with wrangler secret put.
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_ID=

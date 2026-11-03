@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Turn a rough idea into a focused project brief with Paperplane. Preview free, then export a clear Markdown plan.">
+  <meta name="theme-color" content="#f6f3eb"><meta name="referrer" content="no-referrer">
+  <title>Paperplane — Give your idea a clear direction</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='none' stroke='%23242720' stroke-width='2' stroke-linejoin='round' d='M3 13 29 3 21 29 13 20 3 13Zm10 7L29 3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/styles.css"><script src="/app.js" type="module"></script>
+</head>
+<body data-page="workspace">
+  <a href="#workspace" class="skip-link">Skip to workspace</a>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Paperplane home"><svg aria-hidden="true" viewBox="0 0 32 32"><path d="M3 13 29 3 21 29 13 20 3 13Zm10 7L29 3"/></svg><span>Paperplane</span></a>
+      <nav aria-label="Main navigation"><a href="#workspace">Workspace</a><button class="nav-link" data-action="how">How it works</button></nav>
+      <button class="button purchase-button" data-action="purchase">Get export access — $19</button>
+    </header>
+    <main>
+      <section class="introduction" aria-labelledby="page-title">
+        <h1 id="page-title">Give your next idea a clear direction.</h1>
+        <p>Turn a rough idea into a focused project brief. Write, shape, and share — without the blank-page feeling.</p>
+      </section>
+      <section class="workspace" id="workspace" aria-label="Project brief workspace">
+        <form id="brief-form" class="brief-form">
+          <div class="field"><label for="idea">Your idea</label><textarea id="idea" name="idea" rows="5" maxlength="3000" required>A quiet workspace for independent makers to plan, build, and share their next project.</textarea></div>
+          <div class="field"><label for="audience">Who is it for?</label><input id="audience" name="audience" maxlength="300" value="Independent developers, designers, and solo makers." required></div>
+          <div class="field"><label for="outcome">What should they accomplish?</label><input id="outcome" name="outcome" maxlength="500" value="Turn ideas into actionable, scoped project plans." required></div>
+          <div class="form-actions"><button class="button" type="submit">Create brief</button><button class="text-button" type="button" data-action="example">Try an example</button></div>
+          <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+        </form>
+        <div class="document-pane">
+          <div class="document-toolbar"><h2>Project brief</h2><span class="preview-status" id="access-status">Preview</span></div>
+          <article class="brief-document" id="brief-output" aria-label="Generated project brief" aria-live="polite">
+            <h3 id="brief-title">Maker workspace</h3>
+            <section><h4>The idea</h4><p id="brief-idea"></p></section>
+            <section><h4>Who it helps</h4><p id="brief-audience"></p></section>
+            <section><h4>First useful version</h4><ul id="brief-scope"></ul></section>
+          </article>
+          <div class="export-toolbar"><button class="text-button" data-action="copy">Copy preview</button><div class="export-action"><button class="button button-outline" data-action="export"><svg aria-hidden="true" class="lock-icon" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><span>Export Markdown</span></button><span class="export-caption" id="export-caption">One-time access · $19</span></div></div>
+          <p class="form-message" id="export-message" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+      <p class="mode-notice" id="mode-notice" role="status"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg><span>Checking checkout availability…</span></p>
+    </main>
+    <footer class="site-footer"><p>Made for the first useful version.</p><p class="privacy-note">Your draft stays in this browser.</p></footer>
+  </div>
+  <dialog id="how-dialog" aria-labelledby="how-title"><button class="dialog-close" data-action="close-how" aria-label="Close explanation">×</button><h2 id="how-title">A little structure goes a long way.</h2><ol><li>Describe your idea, the people it helps, and their goal.</li><li>Create a brief and refine the inputs until the scope feels right.</li><li>Copy the free preview, or get export access to download a Markdown brief with a launch checklist.</li></ol><p>Paperplane uses a simple local template. No AI service is called, and your draft is not sent to our server.</p><button class="button" data-action="close-how">Back to my idea</button></dialog>
+</body>
+</html>
