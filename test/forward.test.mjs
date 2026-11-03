@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
@@ -9,7 +10,7 @@ const cli = fileURLToPath(new URL('../bin/opc.mjs', import.meta.url));
 const env = { ...process.env, STRIPE_SECRET_KEY: '', STRIPE_WEBHOOK_SECRET: '', STRIPE_PRICE_ID: '' };
 
 async function fixture(t) {
-  const root = await fs.mkdtemp('/private/tmp/opc-forward-test-');
+  const root = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'opc-forward-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   return root;
 }

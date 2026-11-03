@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 
@@ -10,7 +11,7 @@ const baseEnv = { ...process.env };
 for (const key of ['OPC_HARNESS_PROFILE', 'CODEX_HOME', 'CLAUDE_CONFIG_DIR']) delete baseEnv[key];
 
 async function fixture(t) {
-  const root = await fs.mkdtemp('/private/tmp/opc-global-test-');
+  const root = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'opc-global-test-'));
   t.after(() => fs.rm(root, { recursive: true, force: true }));
   return root;
 }
