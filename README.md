@@ -5,11 +5,11 @@
 <p align="center">Describe the website. Keep your defaults. Ship with evidence.</p>
 
 <p align="center">
-  English · <a href="README.zh-CN.md">简体中文</a><br>
   <a href="#getting-started">Get started</a> · <a href="#how-it-works">How it works</a> · <a href="docs/website-example.md">Real example</a> · <a href="docs/configuration.md">Configuration</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="LICENSE">MIT License</a>
 </p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/opc-harness"><img src="https://img.shields.io/npm/v/opc-harness?color=244b3e" alt="npm version"></a>
   <a href="https://github.com/AniChikage/opc-harness/actions/workflows/ci.yml"><img src="https://github.com/AniChikage/opc-harness/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-244b3e" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/Node.js-%E2%89%A522.13-244b3e" alt="Node.js 22.13 or later">
@@ -19,17 +19,17 @@ OPC Harness connects **Codex and Claude Code** to a repeatable website-building 
 
 Configure it once. In a new project, describe the website you want. The agent loads your defaults, initializes the project, adapts the application, and continues through implementation and verification.
 
-**Status: early MVP, v0.2.0.** The included stack is HTML/CSS/JavaScript, Cloudflare Workers + D1, and demo or Stripe **test** payments. It uses host instructions and Skills; it is not a mandatory runtime hook or a replacement for your coding agent. Accounts and credentials remain yours.
+**Status: early MVP, v0.3.0.** The included stack is HTML/CSS/JavaScript, Cloudflare Workers + D1, and demo or Stripe **test** payments. It uses host instructions and Skills; it is not a mandatory runtime hook or a replacement for your coding agent. Accounts and credentials remain yours.
 
-![需求笺 — a real requirements website built using OPC Harness](docs/images/website.png)
+![Paperplane — the included English project brief website](docs/images/website.png)
 
-*Built with the harness: [需求笺](https://xuqiu-jian-20261103-c84f.comicyueyu.workers.dev), a Chinese project-brief tool with free preview and Stripe test checkout for Markdown export. The screenshot shows the real application with fictional sample data.*
+*The included English example: Paperplane, a project brief tool with free preview and demo checkout for Markdown export. The screenshots show the actual application with fictional sample data. Demo checkout collects no real payment. [Follow the walkthrough](docs/website-example.md).*
 
 ## Features
 
 - **One setup, two agents** — install user-level entry Skills and instructions for Codex and Claude Code. Describe the next website without manually initializing every project.
 - **Personal defaults** — keep design, payment mode, and hosting choices in a reusable profile. Existing projects retain their own configuration.
-- **A working starting point** — generate a responsive paid-tool application with live preview, Checkout, server-confirmed entitlements, and a Markdown download. The agent adapts it to your product.
+- **A working starting point** — generate a responsive paid-tool application with a free preview, Checkout, server-confirmed entitlements, and a Markdown download. The agent adapts it to your product.
 - **Server-confirmed payment delivery** — demo mode for development, or Stripe-hosted test Checkout with signed Webhooks, amount/currency matching, and durable duplicate handling.
 - **Cloudflare delivery** — package, provision D1, migrate, deploy the Worker, and verify its project identity and build fingerprint. Record resource ownership for later deployments.
 - **Checks you can inspect** — separate HTTP checks, payment tests, packaging, and deployment evidence. Source changes mark earlier evidence as stale; browser acceptance remains a distinct check.
@@ -42,22 +42,19 @@ You need **Node.js 22.13+**, npm, and an installed, authenticated Codex or Claud
 ### 1. Install once
 
 ```sh
-git clone https://github.com/AniChikage/opc-harness.git
-cd opc-harness
-npm ci
-node bin/opc.mjs setup --global --host both
+npx --yes opc-harness@latest setup --global --host both
 ```
 
-Setup copies a standalone runtime into your user directory and adds marked instructions for both agents. It preserves existing personal instructions, backs up changed files, and leaves model configuration and credentials alone. Review target paths first by adding `--dry-run --json`.
+No source checkout or global npm installation is required. Setup copies a standalone runtime into your user directory and adds marked instructions for both agents. That runtime works independently of the npx cache. Setup preserves existing personal instructions, backs up changed files, and leaves model configuration and credentials alone. Review target paths first by adding `--dry-run --json`.
 
-The CLI has **not been published to npm**. Use this source checkout or `npm pack`; do not rely on an unrelated package with the same name.
+To install this exact release, replace `@latest` with `@0.3.0`. To update later, run the same setup command again. See [configuration](docs/configuration.md) for individual hosts, a persistent CLI, and project-only installation.
 
 ### 2. Describe a website
 
 Start a **new Codex or Claude Code session** in your projects folder and say:
 
 ```text
-Build a Chinese project requirements website for freelancers.
+Build an English project requirements website for independent consultants.
 Offer a free preview and paid Markdown export.
 Use my defaults and complete design, payment testing, and a Cloudflare preview deployment.
 ```
@@ -95,7 +92,7 @@ Project-local evidence with a source fingerprint
 
 The coding agent makes product and design decisions. The shared Skill defines the workflow. The CLI handles repeatable operations such as initialization, configuration inspection, resource checks, and deployment. Browser and real Stripe acceptance use the agent's available tools when the CLI does not automate that step.
 
-| Area | Included in v0.2.0 |
+| Area | Included in v0.3.0 |
 | --- | --- |
 | Hosts | Codex and Claude Code user instructions + Skills |
 | Frontend | Buildless HTML, CSS, and JavaScript; one `editorial` preset |
@@ -108,7 +105,7 @@ Existing frameworks and project instructions take precedence. The included recip
 
 ## Payments and deployment
 
-The starter uses a **$19 USD** example product. The agent may adapt its server-side product and matching Stripe test Price, as the **¥29 CNY** requirements-site example does.
+The starter uses a **$19 USD** example product. The agent may adapt the server-side product and create a matching Stripe test Price for your website.
 
 | Mode | What it proves |
 | --- | --- |
@@ -127,15 +124,19 @@ node .opc/runtime/bin/opc.mjs verify --url https://your-worker.workers.dev --jso
 
 Deployment creates real Cloudflare resources in your account. Keep its `.opc/resources.json` ownership record locally; deployment does not adopt an unknown same-name resource. Local D1 and remote D1 are separate databases. [Payment setup and deployment details](docs/configuration.md#stripe-test-payments).
 
-## A real run
+## An English example
 
-The [需求笺 walkthrough](docs/website-example.md) follows a website from a Chinese product request to a deployed tool:
+The [Paperplane walkthrough](docs/website-example.md) shows the included starter with this English request:
 
-**Free preview → Stripe Sandbox Checkout → signed Webhook → paid order in D1 → download the current Markdown.**
+```text
+Build a simple project brief website for independent makers.
+Let visitors preview a brief for free and purchase Markdown export access.
+Use an editorial design and verify the demo checkout before deployment.
+```
 
-The run completed a ¥29 CNY Stripe test transaction and checked an actual browser download containing all 13 custom fields. Editing the draft and exporting again also passed. This example has product-specific application code; it is not an unchanged copy of the starter. Its source is maintained separately from this harness.
+**Free preview → demo checkout → server-confirmed entitlement → Markdown download.** The draft stays in the browser; the starter checks export access with the server and generates Markdown from the current draft. Demo checkout is a simulation, clearly labeled in the application.
 
-See the [verification record](docs/verification.md) for the distinction between harness tests, example-specific tests, and external acceptance.
+Real Stripe test Checkout and signed Webhook delivery were separately exercised in a custom application. See the [verification record](docs/verification.md) for the distinction between package checks, the English demo, and that external acceptance.
 
 ## Development
 
@@ -143,6 +144,8 @@ See the [verification record](docs/verification.md) for the distinction between 
 npm ci
 npm test
 npm run check
+npm run check:release
+npm run test:package
 npm pack --dry-run
 ```
 
@@ -156,6 +159,7 @@ The CLI is plain ESM JavaScript. Tests use Node's test runner and actual SQLite 
 | `skills/opc-build-website/` | Shared workflow and design/payment/deployment references |
 | `templates/paid-site/` | The working starter |
 | `test/` | CLI, installation, payment and deployment regression tests |
+| `scripts/` | English release checks and isolated package installation checks |
 
 ## Current limits
 

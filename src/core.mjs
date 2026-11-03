@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 export const PACKAGE_ROOT = fileURLToPath(new URL('../', import.meta.url));
-export const VERSION = '0.2.0';
+export const VERSION = '0.3.0';
 export const ZERO_ID = '00000000-0000-0000-0000-000000000000';
 export function fail(message, code = 'OPC_ERROR', details) { const e = new Error(message); e.code = code; e.details = details; throw e; }
 export const digest = (value) => crypto.createHash('sha256').update(value).digest('hex');

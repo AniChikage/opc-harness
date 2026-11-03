@@ -1,6 +1,6 @@
 # Verification record
 
-This is a reviewed summary for v0.2.0, recorded on **2026-11-03**. Private credentials, account identifiers, machine paths, order tokens, and raw deployment records are not published.
+This is a reviewed summary for v0.3.0, recorded on **2026-11-03**. Private credentials, account identifiers, machine paths, order tokens, and raw deployment records are not published.
 
 ## Harness regression tests
 
@@ -19,18 +19,26 @@ The unit and deployment-contract suites use controlled provider responses. They 
 
 ## Host acceptance
 
-Codex CLI **0.162.1** and Claude Code **2.1.304** were each given an ordinary Chinese website request without naming the harness. Both selected the installed entry, initialized a new project for both hosts, and completed inspection/planning successfully.
+Codex CLI **0.162.1** and Claude Code **2.1.304** were each given an ordinary website-building request without naming the harness. Both selected the installed entry, initialized a new project for both hosts, and completed inspection/planning successfully.
 
 This validates those observed sessions on that installation. It does not guarantee automatic selection in every future session or bypass a host's sandbox. Model authentication and model-provider configuration remain host responsibilities.
 
-## External website acceptance
+## Package installation
 
-The separate [需求笺 example](website-example.md) has **48 application/configuration tests** and its own external acceptance. These are not added to the harness's 77 tests.
+The package smoke check installs the actual npm tarball through npx into an isolated home, verifies the Codex and Claude Code entry files, deletes that npx cache, and creates a fresh English project using the copied runtime. Repeating setup must make no changes. Release checks also validate English text, documentation links, matching versions, and public dependency archive URLs. These checks do not require access to the developer's personal host configuration.
+
+## English demo
+
+The [Paperplane walkthrough](website-example.md) uses the included English starter in demo mode. Its screenshots show fictional English input and a simulated purchase. This example does not represent a real Stripe transaction.
+
+## Separate Stripe acceptance
+
+A custom requirements application has **48 application/configuration tests** and its own external acceptance. These are not added to the harness's 77 tests. That application includes product-specific fields and server-side document generation maintained separately from this repository.
 
 | Check | Observed result |
 | --- | --- |
 | Cloudflare preview | Deployed Worker, configured D1, reachable page/assets, matching source build fingerprint |
-| Stripe-hosted Checkout | One-time ¥29 CNY test Session, `livemode=false`, completed with the official test card |
+| Stripe-hosted Checkout | One-time CNY 29 test Session, `livemode=false`, completed with the official test card |
 | Real Webhook | Matching Stripe event recorded by the Worker; order paid and entitlement present; no pending Webhook deliveries at the check |
 | Actual export | Browser-downloaded Markdown contains all 13 custom fields; changed draft exports current content without another purchase |
 | Remote negative cases | Demo completion disabled, invalid signatures rejected, wrong order and export credentials denied |

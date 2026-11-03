@@ -1,7 +1,7 @@
 import path from 'node:path';
-import { fail, redact } from './core.mjs';
+import { fail, redact, VERSION } from './core.mjs';
 import * as workflows from './workflows.mjs';
-const HELP = `opc-harness 0.2.0 — Codex + Claude Code website delivery
+const HELP = `opc-harness ${VERSION} — Codex + Claude Code website delivery
 
 opc setup --global [--host both|codex|claude] [--profile FILE] [--payment demo|stripe_test]
 opc setup [--profile FILE] [--payment demo|stripe_test]  Local profile only
@@ -16,7 +16,7 @@ opc deploy [--dry-run] [--reuse-database-from PROJECT] [--json]  Cloudflare prev
 
 Run project commands from the generated project's root. Node >=22.13 is required.
 Global setup installs user skills/instruction entries; project commands preserve global settings.
-No account signup, live charge, or npm publication is performed.
+Project commands do not create accounts or make live charges.
 `;
 export async function run(argv) {
   const positional = []; const flags = {};

@@ -1,52 +1,68 @@
-# A real website built with OPC Harness
+# Paperplane: an English website example
 
-[English README](../README.md) · [中文说明](../README.zh-CN.md)
+[README](../README.md) · [Configuration](configuration.md)
 
-**需求笺** turns a project's background, scope, delivery boundaries, and acceptance criteria into a Chinese requirements document.
-
-[Try the deployed tool](https://xuqiu-jian-20261103-c84f.comicyueyu.workers.dev). It uses Stripe **test** payments; no real money is charged.
+**Paperplane** is the included project brief starter: enter an idea, preview a document for free, and unlock a Markdown export through a clearly labeled demo checkout. This walkthrough uses fictional English content throughout.
 
 ## The request
 
 ```text
-做一个中文项目需求整理网站，免费预览、付费导出 Markdown，
-完成设计、支付测试和 Cloudflare 部署。
+Build a simple project brief website for independent makers.
+Let visitors preview a brief for free and purchase Markdown export access.
+Use an editorial design and verify the demo checkout before deployment.
 ```
 
-The project started from the installed personal harness, with entry instructions for both Codex and Claude Code. The agent implemented a product-specific application, keeping the starter's plain HTML/CSS/JavaScript and Worker/D1 stack.
+After [personal setup](configuration.md#personal-setup), start a fresh Codex or Claude Code session in your projects folder and describe the website. The installed entry Skill directs the agent to initialize the selected directory and follow its project-local workflow. The agent can adapt this starter or preserve an existing application.
 
-![需求笺's real editor with a synthetic project](images/website.png)
+![Paperplane editor with a fictional English project brief](images/website.png)
 
-## What the agent built
+## What the starter provides
 
-- A Chinese three-step editor: project overview, scope, and acceptance.
-- Thirteen input fields, free live preview, local autosave, copy, and reset confirmation.
-- A one-time ¥29 CNY export product using Stripe-hosted Checkout in a testing environment.
-- Server-generated Markdown containing the current custom inputs, including scope exclusions, acceptance, dependencies, budget, and change policy.
-- A Cloudflare deployment with durable orders and Webhook processing in D1. Draft text is processed for export without being stored in the database.
+- A responsive editorial layout with an idea, audience, and desired outcome.
+- A free document preview, copy action, and browser-local draft storage.
+- A one-time $19 USD example export product, with distinct demo and Stripe test modes.
+- Server-confirmed export access, durable orders, and capability-protected downloads.
+- A Cloudflare Worker and D1 backend, deployment identity checks, and scoped evidence.
 
-The warm paper background, Chinese serif headings, split workspace, and document preview follow the chosen editorial direction. The application screens show fictional project data.
+The draft stays in the browser. When export is unlocked, the application verifies the order and download entitlement with the server, then builds the downloaded Markdown from the current draft. The complete export adds a launch checklist and a next experiment section.
 
-## What actually ran
+## Reproduce the demo
 
-The initial demo-payment run was followed by a separate real Stripe test acceptance:
+Create a project without installing personal instructions if you prefer:
 
-1. Fill every input with a custom Chinese brief and confirm the free preview.
-2. Click export in the deployed website and enter Stripe Sandbox Checkout at ¥29 CNY.
-3. Complete the hosted form using Stripe's official test card and synthetic contact information.
-4. Receive Stripe's signed `checkout.session.completed` event at the deployed Webhook.
-5. Confirm the corresponding Stripe Session is paid, the D1 order is paid, and the matching entitlement exists.
-6. Return to the editor and download the actual Markdown file. All 13 custom fields were checked.
-7. Edit the draft and export again with the existing paid entitlement. The new document contains the changed content.
+```sh
+npx --yes opc-harness@latest init \
+  --dir ./paperplane --name paperplane --host both \
+  --brief 'An English project brief website with free preview and Markdown export'
+cd paperplane
+node .opc/runtime/bin/opc.mjs scaffold
+node .opc/runtime/bin/opc.mjs dev --port 8787
+```
 
-![Server-confirmed Stripe test order unlocking Markdown export](images/payment-confirmed.png)
+Open `http://127.0.0.1:8787` and:
 
-Remote checks also confirmed that demo completion is disabled in Stripe mode, unsigned Webhooks are rejected, and incorrect order/export credentials cannot unlock a document. Desktop and mobile checks ran against the deployed app, including reload and retained entitlement.
+1. Enter a fictional idea, audience, and outcome; select **Create brief** and check the preview.
+2. Select Markdown export and open the demo checkout.
+3. Confirm the simulated purchase. The backend records the demo order and grants export access.
+4. Return to the editor and download the Markdown document.
+5. Change the draft and export again. Confirm the new file contains the updated content.
 
-## What this example means
+![Paperplane confirming a demo purchase and unlocking Markdown export](images/payment-confirmed.png)
 
-The harness supplied installation, host routing, workflow guidance, payment/deployment primitives, and scoped verification. The agent still wrote the product-specific form, validation, Markdown generation, and Stripe setup helper.
+The demo page and exported document identify the payment as simulated. No Stripe transaction or real charge occurs in this mode. To run the automated demo API checks against a running instance:
 
-Those application-specific modules are maintained outside this repository. The included starter remains a generic $19 USD demo/test product; this walkthrough does not imply that copying it alone creates the finished Chinese application or automatically provisions Stripe resources.
+```sh
+node .opc/runtime/bin/opc.mjs payments test --url http://127.0.0.1:8787 --json
+```
 
-No live charge, settlement, subscription, tax workflow, or proof of customer demand is claimed. See [verification](verification.md) for the test scopes and [configuration](configuration.md) to reproduce the supported workflow with your own accounts.
+## Switch to Stripe test payments
+
+Follow [Stripe test configuration](configuration.md#stripe-test-payments) with your own testing environment, matching test Price, and endpoint signing secret. Complete an actual Stripe-hosted test Checkout, verify the signed event at the deployed Webhook, and check the resulting paid entitlement and export. A return redirect alone cannot unlock a download.
+
+The English screenshots here demonstrate **demo** mode. Separate Stripe acceptance in a custom application is documented in the [verification record](verification.md); it is not presented as a transaction from this demo.
+
+## Continue with your product
+
+The harness supplies instructions, a runnable recipe, payment/deployment primitives, and verification commands. The coding agent still designs the finished product, writes its specific fields and output, and verifies browser behavior. Use the starter as a working base and adapt its product definition before testing a different price or currency.
+
+Live payments, settlement, subscriptions, taxes, and merchant eligibility are outside this MVP.

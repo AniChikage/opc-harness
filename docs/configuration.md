@@ -1,16 +1,25 @@
 # Configuration and delivery
 
-[English README](../README.md) · [中文说明](../README.zh-CN.md)
+[README](../README.md)
 
 ## Personal setup
 
-Run from the source checkout:
+Install once for both coding agents with Node.js 22.13 or later:
 
 ```sh
-npm ci
-node bin/opc.mjs setup --global --host both --dry-run --json
-node bin/opc.mjs setup --global --host both
+npx --yes opc-harness@latest setup --global --host both
 ```
+
+Use `@0.3.0` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
+
+If you prefer a persistent command on your PATH:
+
+```sh
+npm install --global opc-harness
+opc-harness setup --global --host both
+```
+
+The package also provides the shorter `opc` command. Installing the npm package alone does not edit agent instructions; the explicit `setup` command performs that installation.
 
 The default profile contains preferences only:
 
@@ -43,7 +52,7 @@ Start a new host session after installation. User-level Skills and instructions 
 Global installation is optional:
 
 ```sh
-node /path/to/opc-harness/bin/opc.mjs init \
+npx --yes opc-harness@latest init \
   --dir /path/to/my-site --name my-paid-site --host both \
   --brief 'A small paid tool with a free preview and Markdown export'
 cd /path/to/my-site
@@ -129,7 +138,7 @@ Keep credentials, local paths, service-account identifiers, order capabilities, 
 After cloning a generated project, restore its ignored runtime with the installed harness:
 
 ```sh
-node /path/to/opc-harness/bin/opc.mjs init --dir /path/to/my-site --host both
+npx --yes opc-harness@latest init --dir /path/to/my-site --host both
 ```
 
 Initialization preserves project choices and application edits. `inspect` reports missing prerequisites and stale evidence before work resumes.

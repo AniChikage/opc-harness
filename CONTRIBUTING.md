@@ -10,6 +10,8 @@ cd opc-harness
 npm ci
 npm test
 npm run check
+npm run check:release
+npm run test:package
 npm pack --dry-run
 ```
 
@@ -38,7 +40,7 @@ New providers or stacks should include a working recipe, concrete prerequisites,
 
 ## Documentation and assets
 
-Keep `README.md` and `README.zh-CN.md` aligned. Use screenshots from the real application with fictional data; no private account screens, machine paths, or internal service references. Ensure local links work in a fresh checkout and the package includes the documentation it links to.
+Keep documentation, prompts, examples, and screenshots in English. Use screenshots from the real application with fictional data; no private account screens, machine paths, or internal service references. Ensure local links work in a fresh checkout and the package includes the documentation it links to. `check:release` checks English release text, local links, matching versions, and public dependency URLs. `test:package` installs the actual tarball into an isolated home, checks both hosts, removes its npx cache, and creates a fresh English project with the copied runtime.
 
 ## Pull requests
 
