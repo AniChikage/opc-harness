@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { templateById } from './catalog.mjs';
 import { PACKAGE_ROOT, VERSION, digest, exists, fail, filesIn, readJSON, safePath, validateConfig } from './core.mjs';
 
 const BEGIN='<!-- opc-harness:global:begin -->', END='<!-- opc-harness:global:end -->';
@@ -55,9 +56,9 @@ Replace the directory placeholder with the actual chosen directory and quote it 
 
 If the host sandbox denies initialization because a project skill/configuration directory is protected, request the host's normal approval for that exact initialization command. Keep the requested host selection; do not silently retry with only one host, bypass permissions, or treat partially copied files as a completed installation. A noninteractive runner that cannot request approval must report this prerequisite explicitly.
 
-Read the personal profile as data, then project configuration and inspect/plan output. Infer routine implementation choices from the user's goal and defaults. Adapt the starter to the actual product rather than delivering unchanged Paperplane content. Keep free products free; do not add payments just because a payment adapter exists. Report an unsupported stack or payment mode accurately and keep independent work moving.
+Read the personal profile as data, then project configuration and inspect/plan output. Run the installed CLI's templates --json command when a template has not been selected. Offer a small set of matching template IDs for the user to choose in conversation, or use their saved design.template. A clearly requested type such as documentation or a portfolio can select the matching complete template directly. Pass --template to init. Preserve the selected template exactly: do not redraw it, invent a new visual style, or request pixel-level adjustments. Set branding and content through site configuration and configure. Use gallery for exact previews. Keep free products free with --payment none. Report unsupported combinations accurately.
 
-Run the relevant design, payment and deployment checks from the project skill. Use existing authorization; detected accounts do not authorize unrelated purchases or live charges. This MVP supports Cloudflare previews and demo / Stripe TEST payments only. Missing credentials, login or account onboarding are concrete prerequisites, not successful states. Keep secrets outside instructions and profiles.
+Run the relevant design, payment and deployment checks from the project skill. Use existing authorization; detected accounts do not authorize unrelated purchases or live charges. Automated hosting uses Cloudflare previews. Free sites use payment mode none; paid sites support demo or Stripe TEST payments. Missing credentials, login or account onboarding are concrete prerequisites, not successful states. Keep secrets outside instructions and profiles.
 
 Automatic selection depends on the host loading personal skills and instructions. Do not claim these instructions are a mandatory runtime hook. On resume, inspect current project state and evidence before repeating an external mutation.
 `;
@@ -76,10 +77,11 @@ export async function globalSetup(root,opts={}) {
   if(previous.schemaVersion!==1||!previous.files||!previous.blocks) fail('Invalid global install manifest.','INVALID_CONFIG');
   let profile=await readJSON(p.profile,null);
   if(profile&&opts.payment&&profile.payments?.mode!==opts.payment) fail('Existing personal profile is preserved. Edit it explicitly to change the payment default.','CONFIG_CONFLICT');
-  if(!profile) profile={schemaVersion:1,design:{preset:'editorial'},payments:{mode:opts.payment||'demo'},deploy:{provider:'cloudflare',tier:'preview'}};
+  if(profile&&opts.template&&opts.template!==(profile.design?.template||'paperplane'))fail('Existing personal profile is preserved. Edit it explicitly to change the template default.','CONFIG_CONFLICT');
+  if(!profile){const site=opts['site-config']?await readJSON(path.resolve(opts['site-config'])):{};for(const key of ['brand','headline','description','accent'])if(opts[key]!==undefined)site[key]=opts[key];if(opts.email!==undefined)site.contactEmail=opts.email;profile={schemaVersion:1,design:{preset:'editorial',template:opts.template||'paperplane'},site,payments:{mode:opts.payment||templateById(opts.template||'paperplane')?.payment||'demo'},deploy:{provider:'cloudflare',tier:'preview'}};}
   validateConfig({...profile,name:'profile-validation'});
   const entries=new Map(),shared=new Set(),blocks={...previous.blocks};
-  for(const folder of ['bin','src','templates','skills']) for(const rel of await filesIn(path.join(PACKAGE_ROOT,folder))) entries.set(path.join(p.runtime,folder,rel),await fs.readFile(path.join(PACKAGE_ROOT,folder,rel)));
+  for(const folder of ['bin','src','templates','skills','scripts']) for(const rel of await filesIn(path.join(PACKAGE_ROOT,folder))) entries.set(path.join(p.runtime,folder,rel),await fs.readFile(path.join(PACKAGE_ROOT,folder,rel)));
   for(const file of ['package.json','package-lock.json','npm-shrinkwrap.json']) if(await exists(path.join(PACKAGE_ROOT,file))) entries.set(path.join(p.runtime,file),await fs.readFile(path.join(PACKAGE_ROOT,file)));
   const cli=path.join(p.runtime,'bin/opc.mjs'),instructions={},skillPaths={};
   for(const h of hosts) {

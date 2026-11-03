@@ -252,3 +252,12 @@ test('a remotely changed owned Worker is refused before database migrations',asy
   const f=await fixture({workerExists:true,versions:[{id:'external-version',metadata:{created_on:'2026-01-01'},annotations:{}}]});
   try{await ownWorker(f);await assert.rejects(f.module.deploy(f.project),{code:'REMOTE_CONFLICT'});assert.equal(hasRemoteMutation(await f.state()),false);}finally{await f.close();}
 }));
+
+test('free deployment never lists, creates or migrates a payment database',async()=>withCleanEnv(async()=>{
+ const f=await fixture({},'none');const original=globalThis.fetch;
+ try{
+  const config=JSON.parse(await fs.readFile(path.join(f.project,'wrangler.jsonc'),'utf8'));delete config.d1_databases;await fs.writeFile(path.join(f.project,'wrangler.jsonc'),JSON.stringify(config));
+  globalThis.fetch=async value=>{if(String(value).endsWith('/api/health')){const s=await f.state(),args=s.actions.filter(a=>a[0]==='deploy'&&!a.includes('--dry-run')).at(-1);return Response.json({ok:true,app:'opc-paid-site',name:NAME,mode:'none',configured:true,buildId:args.find(x=>x.startsWith('BUILD_ID:')).slice(9)});}return new Response(String(value).endsWith('/styles.css')?'a'.repeat(200):'<title>Free site</title><main>Useful content</main>');};
+  assert.equal((await f.module.deploy(f.project)).ok,true);assert.ok(!(await f.state()).actions.some(x=>x[0]==='d1'));
+ }finally{globalThis.fetch=original;await f.close();}
+}));

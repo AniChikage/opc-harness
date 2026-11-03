@@ -1,6 +1,6 @@
 {
   "name": "opc-harness",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A project-local website delivery harness for Codex and Claude Code",
   "homepage": "https://github.com/AniChikage/opc-harness#readme",
   "repository": {
@@ -35,11 +35,12 @@
     "CONTRIBUTING.md",
     "docs",
     "npm-shrinkwrap.json",
-    "LICENSE"
+    "LICENSE",
+    "scripts/check-syntax.mjs"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "check": "node --check bin/opc.mjs && node --check src/core.mjs && node --check src/global.mjs && node --check src/workflows.mjs",
+    "check": "node scripts/check-syntax.mjs",
     "check:release": "node scripts/check-release.mjs",
     "test:package": "node scripts/smoke-package.mjs",
     "prepack": "npm run check"

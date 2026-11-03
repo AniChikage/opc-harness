@@ -1,3 +1,4 @@
+import { siteConfig } from '/site-config.js';
 const $ = (selector) => document.querySelector(selector);
 const storage = {
   get(key) { try { return JSON.parse(localStorage.getItem(`paperplane.${key}`)); } catch { return null; } },
@@ -12,7 +13,7 @@ const examples = [
 let exampleIndex = 0;
 let brief = null;
 let access = null;
-let checkoutMode = null;
+let checkoutMode = siteConfig.mode === 'none' ? 'none' : null;
 
 function message(id, text, error = false) {
   const el = $(id); if (!el) return;
@@ -70,7 +71,7 @@ function renderBrief(next) {
 function markdown(full = false) {
   const preview = `# ${brief.title}\n\n## The idea\n${brief.idea}\n\n## Who it helps\n${brief.audience}\n\n## Desired outcome\n${brief.outcome}\n\n## First useful version\n${brief.scope.map((item) => `- ${item}`).join('\n')}\n`;
   if (!full) return preview;
-  return `${preview}\n## Launch checklist\n- [ ] Define what a successful result looks like.\n- [ ] Test the complete workflow with a first-time user.\n- [ ] Check mobile layout, keyboard access, and error states.\n- [ ] Verify checkout, payment confirmation, and delivery in the target environment.\n- [ ] Record the release URL, version, and remaining limitations.\n\n## Next experiment\nWhat is the smallest real-world test that could change your plan?\n\n---\nPrepared with Paperplane. ${access?.mode === 'demo' ? 'Demo export; no real payment was collected.' : 'Stripe test export; no live payment was collected.'}\n`;
+  return `${preview}\n## Launch checklist\n- [ ] Define what a successful result looks like.\n- [ ] Test the complete workflow with a first-time user.\n- [ ] Check mobile layout, keyboard access, and error states.\n- [ ] Verify checkout, payment confirmation, and delivery in the target environment.\n- [ ] Record the release URL, version, and remaining limitations.\n\n## Next experiment\nWhat is the smallest real-world test that could change your plan?\n\n---\nPrepared with ${siteConfig.brand}. ${access?.mode === 'demo' ? 'Demo export; no real payment was collected.' : 'Stripe test export; no live payment was collected.'}\n`;
 }
 function currentValues() {
   return { idea: $('#idea').value.trim(), audience: $('#audience').value.trim(), outcome: $('#outcome').value.trim() };
@@ -99,6 +100,10 @@ async function purchase(button) {
   }
 }
 async function exportBrief(button) {
+  if(checkoutMode === 'none') {
+    const blob=new Blob([markdown(true).replace('Stripe test export; no live payment was collected.','Free export; no payment is required.')],{type:'text/markdown;charset=utf-8'});
+    const link=document.createElement('a'),url=URL.createObjectURL(blob);link.href=url;link.download='project-brief.md';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);message('#export-message','Your free Markdown brief has been downloaded.');return;
+  }
   if (!access) { await purchase(button); return; }
   const original = button.innerHTML;
   button.disabled = true; button.setAttribute('aria-busy', 'true');
@@ -120,6 +125,8 @@ async function exportBrief(button) {
   finally { button.innerHTML = original; button.disabled = false; button.removeAttribute('aria-busy'); }
 }
 async function workspace() {
+  document.querySelectorAll('[data-action="purchase"]').forEach(button=>{button.textContent=siteConfig.mode==='none'?'Free Markdown export':`Get export access — ${siteConfig.price}`;if(siteConfig.mode==='none')button.hidden=true;});
+  if($('#export-caption'))$('#export-caption').textContent=siteConfig.mode==='none'?'Free export':`One-time access · ${siteConfig.price}`;
   const saved = storage.get('draft');
   if (saved && typeof saved.idea === 'string' && typeof saved.audience === 'string' && typeof saved.outcome === 'string') {
     $('#idea').value = saved.idea; $('#audience').value = saved.audience; $('#outcome').value = saved.outcome;
@@ -145,10 +152,11 @@ async function workspace() {
   $('[data-action="export"]').addEventListener('click', (event) => exportBrief(event.currentTarget));
   $('[data-action="how"]').addEventListener('click', () => $('#how-dialog').showModal());
   document.querySelectorAll('[data-action="close-how"]').forEach((button) => button.addEventListener('click', () => $('#how-dialog').close()));
+  if(siteConfig.mode==='none'){ $('#mode-notice span').textContent='Free workspace. No payment is required.'; return; }
   try {
     const { data } = await api('/api/health');
     checkoutMode = data?.configured ? data.mode : null;
-    const text = data.mode === 'demo' ? 'Demo checkout is active. No real payment will be collected.' : data.configured ? 'Stripe test checkout is active. Use test payment details only; no live payment will be collected.' : 'Checkout is not configured yet. You can still create and copy a free brief.';
+    const text = data.mode === 'none' ? 'Free workspace. No payment is required.' : data.mode === 'demo' ? 'Demo checkout is active. No real payment will be collected.' : data.configured ? 'Stripe test checkout is active. Use test payment details only; no live payment will be collected.' : 'Checkout is not configured yet. You can still create and copy a free brief.';
     $('#mode-notice span').textContent = text;
     document.querySelectorAll('[data-action="purchase"]').forEach((button) => button.disabled = checkoutMode === null);
   } catch { $('#mode-notice span').textContent = 'Checkout could not be reached. You can still create and copy a free brief.'; }

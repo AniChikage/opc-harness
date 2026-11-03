@@ -31,8 +31,8 @@ The draft stays in the browser. When export is unlocked, the application verifie
 Create a project without installing personal instructions if you prefer:
 
 ```sh
-npx --yes opc-harness@latest init \
-  --dir ./paperplane --name paperplane --host both \
+npx --yes opc-harness@0.4.0 init \
+  --dir ./paperplane --name paperplane --host both --template paperplane --payment demo \
   --brief 'An English project brief website with free preview and Markdown export'
 cd paperplane
 node .opc/runtime/bin/opc.mjs scaffold

@@ -13,11 +13,12 @@ Use the user's request and the project's existing choices to deliver a working w
 2. Run `node .opc/runtime/bin/opc.mjs plan --json`. Reconcile its capability plan with the actual request. Add payments only when the product requires them; preserve the existing framework and user choices when updating a site.
 3. Resolve routine choices from the request and project configuration. Ask only for a missing fact that materially changes the implementation or a required external action. Reuse authorization already given in this conversation. Continue independent work while an external prerequisite is missing.
 
-The MVP starter supports buildless HTML/CSS/JavaScript, Cloudflare Workers + D1, and one-time payments using either an explicit demonstration mode or Stripe test mode. Report unsupported combinations accurately; do not silently replace an existing application with this starter.
+The harness provides eight complete templates in buildless HTML/CSS/JavaScript. Run `templates --json` for the current catalog. Choose with the user in conversation when no choice or saved default resolves the layout. `gallery` shows the actual templates. Use `--payment none` for free sites; paid templates support demo or Stripe test checkout on Cloudflare Workers + D1. Free deployments require no D1. Do not replace an existing framework with a template.
 
 ## Implement the requested product
 
-- For a new project, use `scaffold` after checking its target files. Preserve existing source and project instructions. A starter is a starting point: adapt its product, copy, functionality and design to the user's task.
+- For a new project, use `create --template ID` or `init --template ID` followed by `scaffold`. Reuse the selected layout exactly. Set brand, headline, description, accent, email and content items through `configure` or `--site-config`. Do not redesign a chosen template or require cosmetic fine tuning. Implement additional business requirements only when they exceed the selected template's included functionality.
+- Use `preferences --template ID` for future-project defaults. Use `configure --template ID` to deliberately switch an existing project; it refuses edited template files before making changes. `doctor` reports account and configuration prerequisites together. Free sites can use `export --out DIR` for static hosting.
 - For visual decisions and browser checks, read [design](references/design.md). Record the chosen brief in `.opc/design-brief.md` so another agent can continue without reinterpreting it.
 - For a paid product, read [payments](references/payments.md). Preserve server-side payment validation and delivery invariants while adapting the product.
 - For preview or publishing, read [deployment](references/deployment.md). Use `deploy --dry-run` to validate packaging before a remote deployment.
