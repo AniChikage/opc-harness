@@ -9,6 +9,8 @@ import {
   inspect,
   preferences,
   plan,
+  paymentTest,
+  exportSite,
 } from "../src/workflows.mjs";
 import { RECIPES, STACKS } from "../src/modules.mjs";
 import { galleryEntries } from "../src/gallery.mjs";
@@ -301,4 +303,45 @@ test("uncertain Vercel uploads retain their intent and never create duplicates a
     code: "DEPLOYMENT_UNCERTAIN",
   });
   assert.equal(f.requests.filter((x) => x.method === "POST").length, 1);
+});
+
+test("disabled static payment checks still reject a different website identity", async (t) => {
+  const root = await fixture(t);
+  await create(root, { name: "static-identity", recipe: "personal-admin" });
+  const original = globalThis.fetch;
+  const methods = [];
+  globalThis.fetch = async (_url, opts = {}) => {
+    methods.push(opts.method || "GET");
+    return Response.json({
+      name: "another-project",
+      mode: "none",
+      provider: "static",
+      buildId: "different",
+    });
+  };
+  try {
+    const result = await paymentTest(root, { url: "https://another.example" });
+    assert.equal(result.ok, false);
+    assert.equal(result.scope, "payments-disabled");
+    assert.ok(
+      result.checks.some((x) => x.name === "project-identity" && !x.pass),
+    );
+    assert.ok(methods.every((x) => x === "GET"));
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+test("portable exports carry the current source identity for later verification", async (t) => {
+  const root = await fixture(t),
+    site = path.join(root, "site"),
+    out = path.join(root, "export");
+  await create(site, { name: "portable-identity", recipe: "studio-site" });
+  await exportSite(site, { out });
+  const identity = JSON.parse(
+    await fs.readFile(path.join(out, "opc-build.json"), "utf8"),
+  );
+  const build = await staticBuild(site);
+  assert.equal(identity.name, "portable-identity");
+  assert.equal(identity.provider, "static");
+  assert.equal(identity.buildId, build.buildId);
 });

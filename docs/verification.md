@@ -4,7 +4,7 @@
 
 This record distinguishes the prepared source from a published package. npm `latest` was checked live and remains **0.3.0**. Version 0.5.0 is not an npm release or a verified remote Vercel deployment.
 
-- 120 regression tests passed, including all eleven templates, eleven compatible recipes, full project configuration import, saved stack defaults, incompatible selection rejection and Vercel API failure/resume behavior.
+- 122 regression tests passed, including all eleven templates, eleven compatible recipes, full project configuration import, saved stack defaults, incompatible selection rejection and Vercel API failure/resume behavior.
 - The actual studio create command was copied through Chrome, then executed against the local source CLI. The selected contact admin, portable stack and a brand containing an apostrophe were preserved.
 - The actual downloaded `opc-project.json` was read from disk and used by `create --project-config` to generate the selected website with both host entries.
 - The contact admin was exercised in Chrome: create, edit, change stage, reload persistence, search, delete and export. The saved CSV was read from disk and contained the edited contact, current stage and note. A form-control naming collision found during browser QA was corrected.
