@@ -1,12 +1,12 @@
 {
   "name": "opc-harness",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "lockfileVersion": 3,
   "requires": true,
   "packages": {
     "": {
       "name": "opc-harness",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "license": "MIT",
       "dependencies": {
         "wrangler": "4.156.2"

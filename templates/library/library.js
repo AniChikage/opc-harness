@@ -288,3 +288,223 @@ $("[data-calendar]")?.addEventListener("click", () => {
   $("#calendar-status").textContent =
     "Calendar downloaded. This saves the agenda, not an event registration.";
 });
+// Orbit product preview: content changes are tied to the selected step.
+const orbitSteps = [
+  {
+    title: "Make space for the idea.",
+    description: "Write down who it helps and what gets easier for them.",
+    checks: [
+      "One real problem",
+      "A person who needs it",
+      "A useful first result",
+    ],
+  },
+  {
+    title: "Choose the smallest useful version.",
+    description:
+      "Keep the first release focused enough to finish and learn from.",
+    checks: [
+      "One core workflow",
+      "Observable acceptance criteria",
+      "Later ideas set aside",
+    ],
+  },
+  {
+    title: "Leave with a concrete next step.",
+    description:
+      "Export your brief and use it to guide the next small experiment.",
+    checks: [
+      "Review the main path",
+      "Export the current brief",
+      "Share one useful version",
+    ],
+  },
+];
+$$("[data-orbit]").forEach((b) =>
+  b.addEventListener("click", () => {
+    const step = orbitSteps[Number(b.dataset.orbit)];
+    $("#orbit-title").textContent = step.title;
+    $("#orbit-description").textContent = step.description;
+    $("#orbit-checks").replaceChildren(
+      ...step.checks.map((text) => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        return li;
+      }),
+    );
+    $$("[data-orbit]").forEach((x) =>
+      x.setAttribute("aria-pressed", String(x === b)),
+    );
+  }),
+);
+// Sidecar is intentionally browser-local; no fictitious shared backend or email delivery.
+if ($("#contacts-body")) {
+  const stages = ["New", "In conversation", "Ready"];
+  const initial = [
+    {
+      id: "sample-1",
+      name: "Alex Morgan",
+      email: "alex@example.com",
+      stage: "In conversation",
+      note: "Review the brief next week.",
+    },
+    {
+      id: "sample-2",
+      name: "Sam Rivera",
+      email: "sam@example.com",
+      stage: "New",
+      note: "Send a first project outline.",
+    },
+    {
+      id: "sample-3",
+      name: "Jordan Lee",
+      email: "jordan@example.com",
+      stage: "Ready",
+      note: "The first version has a clear scope.",
+    },
+  ];
+  const stored = read("contacts", initial);
+  let contacts = Array.isArray(stored)
+    ? stored.filter(
+        (x) =>
+          x &&
+          typeof x.id === "string" &&
+          typeof x.name === "string" &&
+          typeof x.email === "string" &&
+          stages.includes(x.stage) &&
+          typeof x.note === "string",
+      )
+    : initial;
+  const form = $("#contact-form"),
+    status = $("#contact-status");
+  function resetContact() {
+    form.reset();
+    form.elements.contactId.value = "";
+    $("#contact-form-title").textContent = "Add a contact";
+    $("#contact-save").textContent = "Add contact";
+    $("#contact-cancel").hidden = true;
+  }
+  function editContact(contact) {
+    form.elements.contactId.value = contact.id;
+    for (const field of ["name", "email", "stage", "note"])
+      form.elements[field].value = contact[field];
+    $("#contact-form-title").textContent = "Edit contact";
+    $("#contact-save").textContent = "Save changes";
+    $("#contact-cancel").hidden = false;
+    form.elements.name.focus();
+  }
+  function renderContacts() {
+    const query = $("#contact-search").value.toLowerCase(),
+      stage = $("#contact-filter").value;
+    const visible = contacts.filter(
+      (x) =>
+        (stage === "All stages" || x.stage === stage) &&
+        [x.name, x.email, x.note].join(" ").toLowerCase().includes(query),
+    );
+    $("#contact-total").textContent = contacts.length;
+    $("#contact-open").textContent = contacts.filter(
+      (x) => x.stage === "In conversation",
+    ).length;
+    $("#contact-ready").textContent = contacts.filter(
+      (x) => x.stage === "Ready",
+    ).length;
+    const tbody = $("#contacts-body");
+    tbody.replaceChildren();
+    for (const contact of visible) {
+      const tr = document.createElement("tr");
+      for (const value of [contact.name, contact.email, contact.stage]) {
+        const td = document.createElement("td");
+        if (value === contact.stage) {
+          const badge = document.createElement("span");
+          badge.className = "contact-badge";
+          badge.textContent = value;
+          td.append(badge);
+        } else td.textContent = value;
+        tr.append(td);
+      }
+      const actions = document.createElement("td");
+      for (const [label, action] of [
+        ["Edit", () => editContact(contact)],
+        [
+          "Delete",
+          () => {
+            contacts = contacts.filter((x) => x.id !== contact.id);
+            if (form.elements.contactId.value === contact.id) resetContact();
+            persistContacts("Contact deleted.");
+          },
+        ],
+      ]) {
+        const b = document.createElement("button");
+        b.textContent = label;
+        b.setAttribute("aria-label", label + " " + contact.name);
+        b.onclick = action;
+        actions.append(b);
+      }
+      tr.append(actions);
+      tbody.append(tr);
+    }
+    if (!visible.length) {
+      const tr = document.createElement("tr"),
+        td = document.createElement("td");
+      td.colSpan = 4;
+      td.textContent =
+        "No matching contacts. Add a contact or change your filters.";
+      tr.append(td);
+      tbody.append(tr);
+    }
+  }
+  function persistContacts(message) {
+    const stored = save("contacts", contacts);
+    renderContacts();
+    status.textContent =
+      message +
+      (stored
+        ? ""
+        : " Browser storage is unavailable; export a copy before leaving.");
+  }
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = Object.fromEntries(new FormData(form));
+    const contact = {
+      id: value.contactId || crypto.randomUUID(),
+      name: value.name.trim(),
+      email: value.email.trim(),
+      stage: value.stage,
+      note: value.note.trim(),
+    };
+    if (!contact.name || !contact.email || !stages.includes(contact.stage))
+      return;
+    const index = contacts.findIndex((x) => x.id === contact.id);
+    if (index >= 0) contacts[index] = contact;
+    else contacts.push(contact);
+    resetContact();
+    persistContacts(index >= 0 ? "Contact updated." : "Contact added.");
+  });
+  $("#contact-cancel").onclick = resetContact;
+  $("#contact-search").oninput = renderContacts;
+  $("#contact-filter").onchange = renderContacts;
+  $$("[data-export-contacts]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const cell = (value) =>
+          '"' +
+          (/^[=+@\-\t\r]/.test(value) ? "'" + value : value).replaceAll(
+            '"',
+            '""',
+          ) +
+          '"';
+        download(
+          "Name,Email,Stage,Note\r\n" +
+            contacts
+              .map((x) =>
+                [x.name, x.email, x.stage, x.note].map(cell).join(","),
+              )
+              .join("\r\n"),
+          "contacts.csv",
+          "text/csv",
+        );
+        status.textContent = "Contacts exported.";
+      }),
+  );
+  renderContacts();
+}

@@ -1,6 +1,6 @@
 # Complete templates
 
-[README](../README.md) · [Configuration](configuration.md)
+[README](../README.md) · [Configuration](configuration.md) · [Module guide](modules.md)
 
 Choose a complete layout instead of asking the agent to design one from scratch. Gallery previews and generated projects use the same renderer and bundled assets. A selected template keeps its typography, layout, responsive rules, and interactions; branding and content are data.
 
@@ -16,29 +16,36 @@ Choose a complete layout instead of asking the agent to design one from scratch.
 | `dashboard` | Task workspace | Add/delete tasks, status changes, filters, CSV export | None |
 | `store` | Digital brief kit | Product page, FAQ, complete editor and export checkout | Demo |
 | `event` | Event homepage | Agenda filters, session details, calendar download | None |
+| `pulse` | Bold landing | Product preview, workflow tabs, brief workspace | None |
+| `studio` | Service landing | Service inquiries, project details, email contact | None |
+| `console` | Personal contact admin | Contact CRUD, stages, search, CSV export | None |
 
-Favorites, drafts, and task data live in the visitor's browser. The dashboard does not claim to provide a shared team database. The event calendar saves an agenda; it does not register attendees. The storefront sells the included customizable brief kit, not an arbitrary file. Add additional business behavior when your product requires it.
+Contacts, favorites, drafts, and task data live in the visitor's browser. The dashboard does not claim to provide a shared team database. The event calendar saves an agenda; it does not register attendees. The storefront sells the included customizable brief kit, not an arbitrary file. Add additional business behavior when your product requires it.
 
 ## Choose visually
 
 ```sh
-npx --yes opc-harness@0.4.0 gallery
+npx --yes opc-harness@0.5.0 gallery
 ```
 
-Open the reported local URL. Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Gallery checkout is disabled; payment acceptance runs in the generated project.
+For this source branch, run `node bin/opc.mjs gallery` before npm publication. Open the reported local URL. Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Gallery checkout is disabled; payment acceptance runs in the generated project.
 
-![The complete template gallery](images/template-library.png)
+![The module studio](images/module-studio.png)
+
+![Orbit landing example](images/orbit.png)
+
+![Sidecar admin example](images/sidecar.png)
 
 ## Choose and generate in the terminal
 
 ```sh
-npx --yes opc-harness@0.4.0 create --interactive
+npx --yes opc-harness@0.5.0 create --interactive
 ```
 
-The wizard asks for a template, brand, headline, payment mode, and contact email when relevant. Without `--dir`, creation uses a new `my-website` subdirectory. Use an explicit directory for other names:
+The wizard asks for a frontend category, template, brand, headline, stack, compatible payment mode, and contact email when relevant. Without `--dir`, creation uses a new `my-website` subdirectory. Use an explicit directory for other names:
 
 ```sh
-npx --yes opc-harness@0.4.0 create \
+npx --yes opc-harness@0.5.0 create \
   --dir ./studio --name studio --template portfolio \
   --brand 'North Star Studio' --email hello@example.com --host both
 cd studio
@@ -102,8 +109,8 @@ A project with an existing deployment ownership record cannot change payment mod
 ## Reuse defaults
 
 ```sh
-npx --yes opc-harness@0.4.0 setup --global --host both --template portfolio --payment none
-npx --yes opc-harness@0.4.0 preferences --interactive
+npx --yes opc-harness@0.5.0 setup --global --host both --template portfolio --payment none
+npx --yes opc-harness@0.5.0 preferences --interactive
 ```
 
 Setup preserves an existing profile. `preferences` explicitly updates it, backs up the previous JSON, and affects future projects. Existing project choices remain independent.

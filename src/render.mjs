@@ -36,7 +36,14 @@ export async function templateEntries(config) {
   }
   let workspace = entries["public/index.html"]
     .toString()
-    .replace(/<title>.*?<\/title>/, '<title>' + escapeHTML(site.brand) + ' — ' + escapeHTML(id==='paperplane'?site.headline:'Brief workspace') + '</title>')
+    .replace(
+      /<title>.*?<\/title>/,
+      "<title>" +
+        escapeHTML(site.brand) +
+        " — " +
+        escapeHTML(id === "paperplane" ? site.headline : "Brief workspace") +
+        "</title>",
+    )
     .replace(
       /<h1 id="page-title">.*?<\/h1>/,
       '<h1 id="page-title">' + escapeHTML(site.headline) + "</h1>",
@@ -83,5 +90,28 @@ export async function templateEntries(config) {
     for (const file of Object.keys(entries))
       if (file.startsWith("migrations/") || file === ".dev.vars.example")
         delete entries[file];
+  if (config.deploy.provider !== "cloudflare") {
+    delete entries["worker.mjs"];
+    for (const file of Object.keys(entries))
+      if (file.startsWith("migrations/") || file === ".dev.vars.example")
+        delete entries[file];
+    if (config.deploy.provider === "vercel") {
+      entries["vercel.json"] =
+        JSON.stringify(
+          {
+            $schema: "https://openapi.vercel.sh/vercel.json",
+            framework: null,
+            buildCommand: "",
+            installCommand: "",
+            outputDirectory: "public",
+            cleanUrls: false,
+          },
+          null,
+          2,
+        ) + "\n";
+      entries[".dev.vars.example"] =
+        "VERCEL_TOKEN=\nVERCEL_PROJECT_ID=\nVERCEL_TEAM_ID=\n";
+    }
+  }
   return entries;
 }

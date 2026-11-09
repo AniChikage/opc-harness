@@ -126,6 +126,48 @@ export const TEMPLATES = Object.freeze([
     payment: "none",
     features: ["Agenda filters", "Session details", "Calendar download"],
   },
+  {
+    id: "pulse",
+    name: "Orbit",
+    category: "Landing",
+    description:
+      "A vivid product landing page with an interactive workflow preview, feature tabs and a working brief workspace.",
+    brand: "Orbit",
+    headline: "Your next release starts here.",
+    descriptionText:
+      "Bring the scattered pieces of your next idea into one focused project brief.",
+    accent: "#7354d3",
+    payment: "none",
+    features: ["Interactive preview", "Feature tabs", "FAQ", "Brief workspace"],
+  },
+  {
+    id: "studio",
+    name: "Daybreak",
+    category: "Landing",
+    description:
+      "A service studio landing page with selected projects, service details and prefilled email inquiries.",
+    brand: "Daybreak",
+    headline: "Good ideas deserve a great beginning.",
+    descriptionText:
+      "A small independent studio shaping identities and websites for things worth making.",
+    accent: "#245dca",
+    payment: "none",
+    features: ["Service selection", "Project details", "Email inquiries"],
+  },
+  {
+    id: "console",
+    name: "Sidecar",
+    category: "Admin",
+    description:
+      "A complete browser-local contact pipeline with create, edit, delete, search, stages and CSV export.",
+    brand: "Sidecar",
+    headline: "Keep the next conversation moving.",
+    descriptionText:
+      "A personal contact pipeline. Sample data and edits stay in this browser; there is no shared account backend.",
+    accent: "#335bba",
+    payment: "none",
+    features: ["Contact CRUD", "Pipeline stages", "Search", "CSV export"],
+  },
 ]);
 export const templateById = (id) => TEMPLATES.find((t) => t.id === id);
 export function siteDefaults(id = "paperplane") {
@@ -140,3 +182,78 @@ export function siteDefaults(id = "paperplane") {
     }
   );
 }
+
+// References are independent examples to inspect, never a claim of copied source or affiliation.
+export const REFERENCES = {
+  saas: [
+    {
+      name: "Cal.com",
+      url: "https://cal.com/",
+      note: "Product walkthrough and a clear first action.",
+    },
+  ],
+  pulse: [
+    {
+      name: "Linear",
+      url: "https://linear.app/",
+      note: "A product story built around the interface.",
+    },
+  ],
+  studio: [
+    {
+      name: "Notion",
+      url: "https://www.notion.com/",
+      note: "Editorial rhythm and readable product storytelling.",
+    },
+  ],
+  dashboard: [
+    {
+      name: "shadcn/ui dashboard",
+      url: "https://ui.shadcn.com/examples/dashboard",
+      note: "Dense, readable workspace navigation and tables.",
+    },
+  ],
+  console: [
+    {
+      name: "shadcn/ui dashboard",
+      url: "https://ui.shadcn.com/examples/dashboard",
+      note: "Table hierarchy, filtering and clear primary actions.",
+    },
+  ],
+  docs: [
+    {
+      name: "Astro documentation",
+      url: "https://docs.astro.build/en/getting-started/",
+      note: "Persistent guide navigation and content hierarchy.",
+    },
+  ],
+  directory: [
+    {
+      name: "Astro integrations",
+      url: "https://astro.build/integrations/",
+      note: "Searchable resources organized by category.",
+    },
+  ],
+  paperplane: [
+    {
+      name: "Notion",
+      url: "https://www.notion.com/",
+      note: "A writing-first workspace with a visible document.",
+    },
+  ],
+  store: [
+    {
+      name: "Stripe",
+      url: "https://stripe.com/",
+      note: "Explain the product and the next action clearly.",
+    },
+  ],
+  portfolio: [],
+  event: [
+    {
+      name: "Config",
+      url: "https://config.figma.com/",
+      note: "Event information and agenda hierarchy; dates belong to the reference event.",
+    },
+  ],
+};

@@ -3,8 +3,9 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { templateById } from './catalog.mjs';
+import { stackById } from './modules.mjs';
 export const PACKAGE_ROOT = fileURLToPath(new URL('../', import.meta.url));
-export const VERSION = '0.4.0';
+export const VERSION = '0.5.0';
 export const ZERO_ID = '00000000-0000-0000-0000-000000000000';
 export function fail(message, code = 'OPC_ERROR', details) { const e = new Error(message); e.code = code; e.details = details; throw e; }
 export const digest = (value) => crypto.createHash('sha256').update(value).digest('hex');
@@ -26,11 +27,14 @@ export async function filesIn(dir, prefix = '') { const out = []; if (!await exi
 export function validateConfig(c) {
   if (c?.schemaVersion !== 1 || !/^[a-z][a-z0-9-]{2,45}$/.test(c.name || '')) fail('Project requires schemaVersion 1 and a 3–46 character lowercase slug.', 'INVALID_CONFIG');
   if (!['none','demo','stripe_test'].includes(c.payments?.mode)) fail('payments.mode must be none, demo or stripe_test.', 'INVALID_CONFIG');
-  if (c.deploy?.provider !== 'cloudflare') fail('MVP deploy provider must be cloudflare.', 'INVALID_CONFIG');
+  const stack = stackById(c.deploy?.provider);
+  if (!stack) fail('deploy.provider must be cloudflare, vercel or static.', 'INVALID_CONFIG');
+  if (!stack.payments.includes(c.payments.mode)) fail('This stack supports free sites only. Choose Cloudflare for demo or Stripe test checkout.', 'INCOMPATIBLE_MODULES');
   if (c.design?.preset !== 'editorial') fail('design.preset must be editorial; select a layout with design.template.', 'INVALID_CONFIG');
   if(c.design.template && !templateById(c.design.template)) fail('Unknown design.template. Run opc templates.', 'INVALID_CONFIG');
   if(c.site){
     if(typeof c.site!=='object'||Array.isArray(c.site))fail('site must be an object.','INVALID_CONFIG');
+    if(Object.keys(c.site).some(k=>!['brand','headline','description','contactEmail','accent','items','event'].includes(k)))fail('Unknown site field. Site content is public; keep credentials in environment variables.','INVALID_CONFIG');
     for(const key of ['brand','headline','description','contactEmail']) if(c.site[key]!==undefined && (typeof c.site[key]!=='string'||!c.site[key].trim()||c.site[key].length>1000||/[\u0000-\u001f]/.test(c.site[key]))) fail(`Invalid site.${key}.`,'INVALID_CONFIG');
     if(c.site.accent!==undefined&&!/^#[a-f0-9]{6}$/i.test(c.site.accent)) fail('site.accent must be a six-digit hex color.','INVALID_CONFIG');
     if(c.site.contactEmail!==undefined&&!/^[\w.+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(c.site.contactEmail)) fail('site.contactEmail must be an email address.','INVALID_CONFIG');
@@ -39,7 +43,7 @@ export function validateConfig(c) {
     if(c.site.event && (!Number.isFinite(Date.parse(c.site.event.startsAt))||!Number.isFinite(Date.parse(c.site.event.endsAt))||Date.parse(c.site.event.endsAt)<=Date.parse(c.site.event.startsAt)||typeof c.site.event.location!=='string'||!c.site.event.location.trim()||c.site.event.location.length>300))fail('site.event requires valid startsAt and endsAt timestamps and a location.','INVALID_CONFIG');
   }
   if(c.payments.product && ((c.payments.product.sku!==undefined&&c.payments.product.sku!=='starter')||!Number.isSafeInteger(c.payments.product.amount)||c.payments.product.amount<50||c.payments.product.amount>99999999||!['usd','eur','gbp','cny','jpy','cad','aud'].includes(c.payments.product.currency))) fail('Set a product amount in minor units (50–99999999) and a supported lowercase currency.','INVALID_CONFIG');
-  if (c.deploy.tier !== 'preview') fail('MVP supports preview deployments only.', 'INVALID_CONFIG');
+  if (c.deploy.tier !== 'preview') fail('Automated deployment supports previews only.', 'INVALID_CONFIG');
   return c;
 }
 export async function configAt(root) { await safePath(root,'.opc/project.json'); return validateConfig(await readJSON(path.join(root,'.opc/project.json'))); }
@@ -56,7 +60,7 @@ export async function managedWrite(root, entries, {expected={}}={}) {
   await writeJSON(root,manifestFile,manifest);
 }
 export async function fingerprint(root) {
-  const names = ['.opc/project.json','.opc/design-brief.md','wrangler.jsonc','worker.mjs', ... (await filesIn(path.join(root,'public'))).map(x=>'public/'+x), ...(await filesIn(path.join(root,'migrations'))).map(x=>'migrations/'+x), ...(await filesIn(path.join(root,'lib'))).map(x=>'lib/'+x)];
+  const names = ['.opc/project.json','.opc/design-brief.md','wrangler.jsonc','vercel.json','worker.mjs', ... (await filesIn(path.join(root,'public'))).map(x=>'public/'+x), ...(await filesIn(path.join(root,'migrations'))).map(x=>'migrations/'+x), ...(await filesIn(path.join(root,'lib'))).map(x=>'lib/'+x)];
   const h = crypto.createHash('sha256');
   for (const rel of [...new Set(names)].sort()) { await safePath(root,rel); h.update(rel+'\0'); h.update(await exists(path.join(root,rel)) ? await fs.readFile(path.join(root,rel)) : '<missing>'); }
   return h.digest('hex');

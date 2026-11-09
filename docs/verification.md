@@ -1,5 +1,23 @@
 # Verification record
 
+## v0.5.0 development branch — November 9, 2026
+
+This record distinguishes the prepared source from a published package. npm `latest` was checked live and remains **0.3.0**. Version 0.5.0 is not an npm release or a verified remote Vercel deployment.
+
+- 120 regression tests passed, including all eleven templates, eleven compatible recipes, full project configuration import, saved stack defaults, incompatible selection rejection and Vercel API failure/resume behavior.
+- The actual studio create command was copied through Chrome, then executed against the local source CLI. The selected contact admin, portable stack and a brand containing an apostrophe were preserved.
+- The actual downloaded `opc-project.json` was read from disk and used by `create --project-config` to generate the selected website with both host entries.
+- The contact admin was exercised in Chrome: create, edit, change stage, reload persistence, search, delete and export. The saved CSV was read from disk and contained the edited contact, current stage and note. A form-control naming collision found during browser QA was corrected.
+- All eleven example pages were opened at a measured 1488px desktop width and a measured 390px mobile width. Each contained its intended heading and had no page-level horizontal overflow. The studio's own 390px layout and mobile configuration shortcut were also exercised. Desktop/mobile screenshots were captured from the actual pages; the last template pass returned no relevant warning/error logs.
+- Orbit's live feature tabs and the studio's mobile preview mode were exercised. The catalog shows independent reference-site links alongside exact reusable OPC examples.
+- The original paid Cloudflare recipe was packaged with real Wrangler, then served against local D1. HTTP checks and all eight demo checkout/entitlement/download checks passed. No new external Stripe transaction or Cloudflare deployment was performed in this pass.
+- A real Vercel static dry-run built the selected frontend and source-identity marker without remote requests. API fixtures checked explicit project/team scope, static-only uploads, preview targeting, source identity, repeat/resume behavior and uncertain-upload refusal. Real remote Vercel acceptance remains unverified without the selected project's credentials.
+- The shared project Skill passed its validator. Actual new Codex/Claude Code model sessions were not launched in this pass; generated entries and the copied runtime are checked independently of model routing.
+
+Source syntax, English release text, documentation links, package contents and isolated tarball installation are checked separately before publication. Do not treat a local archive as proof of npm availability.
+
+# Verification record
+
 This is a reviewed summary for v0.4.0, recorded on **2026-11-03**. Private credentials, account identifiers, machine paths, order tokens, and raw deployment records are not published.
 
 ## Harness regression tests

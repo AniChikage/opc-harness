@@ -1,95 +1,143 @@
 import http from "node:http";
-import { TEMPLATES, siteDefaults, templateById } from "./catalog.mjs";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { TEMPLATES, REFERENCES, siteDefaults } from "./catalog.mjs";
+import {
+  FRONTENDS,
+  STACKS,
+  PAYMENT_MODULES,
+  RECIPES,
+  frontendFor,
+} from "./modules.mjs";
 import { templateEntries } from "./render.mjs";
 import { escapeHTML as e } from "./pages.mjs";
-import { fail } from "./core.mjs";
-const shellQuote = (s) => "'" + String(s).replaceAll("'", "'\\''") + "'";
+import { PACKAGE_ROOT, VERSION, fail, managedWrite } from "./core.mjs";
+export async function galleryEntries() {
+  const ordered = FRONTENDS.flatMap((f) =>
+    f.templates.map((id) => TEMPLATES.find((t) => t.id === id)),
+  );
+  const catalog = {
+    version: VERSION,
+    templates: TEMPLATES.map((t) => ({
+      ...t,
+      type: frontendFor(t.id).id,
+      preview: "/templates/" + t.id + "/",
+      references: REFERENCES[t.id] || [],
+    })),
+    frontends: FRONTENDS,
+    stacks: STACKS,
+    payments: PAYMENT_MODULES,
+    recipes: RECIPES,
+  };
+  const entries = {};
+  for (const file of ["studio.css", "studio.js"])
+    entries[file] = await fs.readFile(
+      path.join(PACKAGE_ROOT, "templates/studio", file),
+    );
+  entries["catalog.json"] = JSON.stringify(catalog);
+  entries["api/health"] = JSON.stringify({
+    ok: true,
+    mode: "preview",
+    configured: false,
+  });
+  for (const t of TEMPLATES) {
+    const preview = await templateEntries({
+      name: "template-preview",
+      design: { preset: "editorial", template: t.id },
+      site: siteDefaults(t.id),
+      payments: { mode: t.payment },
+      deploy: { provider: "cloudflare", tier: "preview" },
+    });
+    for (const [file, bytes] of Object.entries(preview)) {
+      if (!file.startsWith("public/")) continue;
+      const filename = file.slice(7);
+      let body = bytes;
+      if (filename.endsWith(".html"))
+        body = body
+          .toString()
+          .replace(/(href|src)="\//g, `$1="/templates/${t.id}/`);
+      if (filename === "app.js")
+        body = body
+          .toString()
+          .replace("'/site-config.js'", `'/templates/${t.id}/site-config.js'`);
+      entries[`templates/${t.id}/${filename}`] = body;
+    }
+  }
+  entries["index.html"] =
+    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Choose a complete website by its actual appearance. Combine frontend, stack and payments, then export a ready-to-run configuration."><title>Website Studio — OPC Harness</title><link rel="stylesheet" href="/studio.css"><script src="/studio.js" type="module"></script></head><body><a class="skip" href="#main">Skip to templates</a><header class="topbar"><a class="wordmark" href="/" aria-label="OPC Harness studio"><svg viewBox="0 0 30 30" aria-hidden="true"><path d="M4 7h9v7H4zM17 7h9v7h-9zM4 18h9v7H4zM17 18h9v7h-9z" fill="currentColor"/></svg>OPC <span>Studio</span></a><span class="header-note">A website you can see. A setup you can reuse.</span><a class="source-link" href="https://github.com/AniChikage/opc-harness" target="_blank" rel="noopener noreferrer">GitHub</a><span class="version">${e(VERSION)}</span></header><div class="studio-shell"><aside class="sidebar"><p class="side-label">Frontend library</p><nav aria-label="Website types"><button data-filter="all" aria-pressed="true" class="active">All templates <span>${TEMPLATES.length}</span></button>${FRONTENDS.map((x) => `<button data-filter="${x.id}" aria-pressed="false">${e(x.name)}<span>${x.templates.length}</span></button>`).join("")}</nav><div class="side-bottom"><p>Pick a recipe</p><label class="sr-only" for="recipe">Ready-made recipe</label><select id="recipe"><option value="">Build your combination</option>${RECIPES.map((x) => `<option value="${x.id}">${e(x.name)}</option>`).join("")}</select><p>Templates, stack and payments selected together.</p></div></aside><main id="main"><section class="intro"><span class="intro-tag">From idea to a working first version</span><h1>See it. Choose it.<br>Make it yours.</h1><p>Complete websites with real interactions. Start with the result, then choose how it runs.</p></section><div class="catalog-toolbar"><h2 id="category-title">All templates</h2><label class="catalog-search"><span class="sr-only">Search templates</span><input id="template-search" type="search" placeholder="Find a template or feature"></label></div><p id="catalog-count" class="sr-only" role="status"></p><div class="template-grid">${ordered
+      .map(
+        (t) =>
+          `<article class="template-card" data-template="${t.id}" data-type="${frontendFor(t.id).id}"><button class="preview-button" data-preview="${t.id}" aria-label="Preview ${e(t.name)}"><div class="mini-browser" aria-hidden="true"><span></span><span></span><span></span><small>${e(t.brand.toLowerCase().replaceAll(" ", "-"))}.example</small></div><div class="preview-frame"><iframe loading="lazy" src="/templates/${t.id}/" title="${e(t.name)} website thumbnail" tabindex="-1" aria-hidden="true" sandbox="allow-scripts allow-same-origin"></iframe></div><span class="preview-label">Explore website</span></button><div class="card-content"><div class="card-title"><h3>${e(t.name)}</h3><span>${e(frontendFor(t.id).name)}</span></div><p>${e(t.description)}</p><div class="card-features">${t.features
+            .slice(0, 3)
+            .map((f) => `<span>${e(f)}</span>`)
+            .join(
+              "",
+            )}</div><div class="card-actions"><button class="text-button" data-preview="${t.id}">Preview website</button><button class="choose-button" data-select="${t.id}" aria-pressed="false">Use template</button></div>${(REFERENCES[t.id] || []).map((r) => `<a class="card-reference" href="${e(r.url)}" target="_blank" rel="noopener noreferrer">Pattern reference: ${e(r.name)}</a>`).join("")}</div></article>`,
+      )
+      .join(
+        "",
+      )}</div><p id="no-templates" hidden>No templates match. Try another feature or website type.</p><footer class="catalog-footer">The examples use the same HTML, CSS and interactions as generated projects. Reference websites are independent inspiration links; their source and assets are not copied.</footer></main><aside class="configuration" aria-labelledby="configuration-title"><div class="config-heading"><span class="selection-dot"></span><h2 id="configuration-title">Your website</h2><span id="selected-type"></span></div><div class="selection-summary"><h3 id="selected-name"></h3><p id="selected-description"></p><button class="text-button" id="preview-selection">Preview selected website</button></div><form id="project-form"><label>Project folder<input id="project" value="my-website" pattern="[a-z][a-z0-9-]{2,45}" maxlength="46" required></label><label>Brand name<input id="brand" maxlength="100" required></label><label>Headline<input id="headline" maxlength="300" required></label><details class="brand-details"><summary>More brand settings</summary><label>Description<input id="description" maxlength="800" required></label><label>Contact email<input id="email" type="email" value="hello@example.com" required></label><label>Accent color<input id="accent" type="color" value="#7354d3"></label></details><label>Run & deploy<select id="stack">${STACKS.map((x) => `<option value="${x.id}">${e(x.name)}</option>`).join("")}</select></label><p class="field-note" id="stack-note"></p><label>Payment<select id="payment">${PAYMENT_MODULES.map((x) => `<option value="${x.id}">${e(x.name)}</option>`).join("")}</select></label><p class="field-note" id="payment-note"></p><div id="product-settings" hidden><label>Price in minor units<input id="amount" type="number" value="1900" min="50" max="99999999" step="1" required></label><label>Currency<select id="currency"><option value="usd">USD</option><option value="eur">EUR</option><option value="gbp">GBP</option><option value="cny">CNY</option><option value="jpy">JPY</option><option value="cad">CAD</option><option value="aud">AUD</option></select></label><p class="field-note">For Stripe, configure a test Price with the same currency and amount. JPY uses whole yen.</p></div><details class="data-module"><summary>Data & content included</summary><p id="data-note"></p><p>Brand and content are configurable. User accounts and shared team data require an additional backend.</p></details><div class="module-status" role="status" id="compatibility"></div><button class="primary-button" type="submit">Copy create command</button><button class="secondary-button" type="button" id="download-config">Download project config</button></form><p id="copy-status" role="status"></p><details class="command-details"><summary>View command & agent prompt</summary><pre><code id="command"></code></pre><pre id="agent-prompt"></pre><button class="text-button" id="copy-prompt">Copy agent prompt</button></details><details class="reference-module" open><summary>Related example websites</summary><div id="references"></div><p>References help compare patterns. The selected OPC template is the exact reusable example.</p></details><p class="local-only">Configuration stays on this device. No accounts or deployments are created by this page.</p></aside></div><a class="mobile-config" href="#configuration-title">Configure selected website</a><dialog class="preview-dialog" aria-labelledby="preview-title"><header><div><strong id="preview-title"></strong><span id="preview-info"></span></div><div class="device-switch" role="group" aria-label="Preview viewport"><button data-device="desktop" aria-pressed="true">Desktop</button><button data-device="mobile" aria-pressed="false">Mobile</button></div><a id="open-preview" target="_blank" rel="noopener">Open example</a><button id="close-preview" aria-label="Close website preview">Close</button></header><div class="live-preview"><iframe id="live-frame" title="Interactive website preview" sandbox="allow-scripts allow-same-origin allow-downloads allow-popups"></iframe></div><footer><p>Interact with the complete frontend. Checkout runs only in a generated project with its configured backend.</p><button class="primary-button" id="use-preview">Use this template</button></footer></dialog></body></html>`;
+  return entries;
+}
 export async function gallery(opts = {}) {
+  const entries = await galleryEntries();
+  if (opts.out) {
+    const directory = path.resolve(opts.out);
+    await managedWrite(directory, entries);
+    console.log(
+      JSON.stringify({
+        ok: true,
+        directory,
+        templates: TEMPLATES.length,
+        scope: "static-gallery-export",
+        note: "Serve this folder at an HTTP(S) origin root.",
+      }),
+    );
+    return;
+  }
   const port = Number(opts.port || 8788);
   if (!Number.isInteger(port) || port < 1024 || port > 65535)
     fail("port must be 1024–65535.", "INVALID_ARGUMENT");
-  const cache = new Map();
-  for (const t of TEMPLATES)
-    cache.set(
-      t.id,
-      await templateEntries({
-        name: "template-preview",
-        design: { preset: "editorial", template: t.id },
-        site: siteDefaults(t.id),
-        payments: { mode: t.payment },
-        deploy: { provider: "cloudflare", tier: "preview" },
-      }),
-    );
-  const cards = TEMPLATES.map(
-    (t) =>
-      `<article data-category="${e(t.category)}"><div class="preview"><iframe loading="lazy" src="/templates/${t.id}/" title="${e(t.name)} template preview" tabindex="-1" sandbox="allow-scripts allow-same-origin allow-downloads"></iframe></div><div class="card-body"><span>${e(t.category)}</span><h2>${e(t.name)}</h2><p>${e(t.description)}</p><div class="features">${t.features.map((x) => `<span>${e(x)}</span>`).join("")}</div><div class="actions"><a href="/templates/${t.id}/" target="_blank" rel="noopener">Open preview</a><button data-select="${t.id}">Choose template</button></div></div></article>`,
-  ).join("");
-  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>OPC Harness — Template library</title><link rel="stylesheet" href="/gallery.css"><script src="/gallery.js" defer></script></head><body><header><a href="/">OPC Harness</a><span>Template library / v0.4.0</span></header><main><section class="intro"><h1>Pick it. Make it yours. Ship it.</h1><p>Eight complete websites, ready to use as shown. Choose a layout, set your brand, and generate the whole project.</p></section><nav aria-label="Template categories"><button class="selected" data-filter="All" aria-pressed="true">All templates</button>${[...new Set(TEMPLATES.map((x) => x.category))].map((x) => `<button data-filter="${e(x)}" aria-pressed="false">${e(x)}</button>`).join("")}</nav><div class="grid">${cards}</div><p class="notice">Previews run local interface interactions. Checkout and deployment are enabled in generated projects with your chosen payment mode and account configuration.</p></main><dialog aria-labelledby="choose-title"><button id="close-dialog">Close</button><h2 id="choose-title">Make this template yours.</h2><label>Brand name<input id="brand" maxlength="100" required></label><label>Project folder<input id="project" value="my-website" pattern="[a-z][a-z0-9-]{2,45}" required></label><pre><code id="command"></code></pre><button id="copy-command">Copy command</button><p id="copy-status" role="status"></p><p>Or run <code>opc-harness create --interactive</code> to choose and generate directly in your terminal.</p></dialog></body></html>`;
-  const js = `const catalog=${JSON.stringify(TEMPLATES)};const quote=${shellQuote.toString()};let selected;const dialog=document.querySelector('dialog'),brand=document.querySelector('#brand'),project=document.querySelector('#project');function command(){if(!selected)return;document.querySelector('#command').textContent='npx --yes opc-harness@0.4.0 create --dir '+quote('./'+project.value)+' --name '+quote(project.value)+' --template '+selected.id+' --brand '+quote(brand.value)+' --host both';}document.querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>{selected=catalog.find(t=>t.id===b.dataset.select);brand.value=selected.brand;command();dialog.showModal();});document.querySelector('#close-dialog').onclick=()=>dialog.close();brand.oninput=project.oninput=command;document.querySelector('#copy-command').onclick=async()=>{try{await navigator.clipboard.writeText(document.querySelector('#command').textContent);document.querySelector('#copy-status').textContent='Command copied.';}catch{document.querySelector('#copy-status').textContent='Select and copy the command above.';}};document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-filter]').forEach(x=>{x.classList.toggle('selected',x===b);x.setAttribute('aria-pressed',String(x===b));});document.querySelectorAll('article').forEach(x=>x.hidden=b.dataset.filter!=='All'&&x.dataset.category!==b.dataset.filter);});`;
-  const css = `*{box-sizing:border-box}body{margin:0;background:#f7f9fc;color:#162532;font:16px/1.6 system-ui,sans-serif}header,main{width:min(1440px,calc(100% - 80px));margin:auto}header{display:flex;justify-content:space-between;align-items:center;padding:30px 0;border-bottom:1px solid #d9e1e8}header a{font-weight:750;text-decoration:none;font-size:23px;color:inherit}header span{font-size:14px;color:#617181}.intro{padding:60px 0 28px}.intro h1{font-size:clamp(35px,4.5vw,64px);letter-spacing:-2.5px;line-height:1.1;margin:0 0 22px;font-weight:650}.intro p{font-size:19px;max-width:65ch;color:#617181}nav{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 38px}button,a,input{font:inherit}button{cursor:pointer}nav button{border:1px solid #d0d9e4;border-radius:100px;padding:8px 18px;background:white;color:#526476}.selected{background:#223f72!important;color:white!important;border-color:#223f72!important}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}article{border:1px solid #d8e1ea;background:white;border-radius:12px;overflow:hidden}.preview{height:310px;overflow:hidden;background:#ecf0f5;pointer-events:none;border-bottom:1px solid #d8e1ea}.preview iframe{width:1280px;height:800px;transform:scale(.48);transform-origin:top left;border:0}.card-body{padding:25px 28px}.card-body>span{font-size:13px;color:#617181}.card-body h2{font-size:28px;letter-spacing:-.8px;margin:5px 0 10px}.card-body p{color:#617181;min-height:50px;margin:0 0 18px}.features{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;color:#617181}.features span{padding:3px 8px;border:1px solid #e0e5eb;border-radius:4px}.actions{display:flex;justify-content:space-between;align-items:center;margin-top:26px;gap:20px}.actions a{color:#294f8c;text-underline-offset:4px}.actions button,#copy-command{background:#233f70;border:0;border-radius:6px;color:white;padding:10px 18px}.notice{padding:30px 0;color:#617181;font-size:14px}dialog{max-width:650px;width:calc(100% - 40px);border:1px solid #c4d1e1;border-radius:12px;padding:32px;color:#162532}dialog::backdrop{background:#152d4b88}#close-dialog{float:right;border:1px solid #c4d1e1;background:white;border-radius:5px;padding:5px 12px}dialog h2{clear:both;padding-top:15px}label{display:grid;gap:8px;margin:20px 0}input{border:1px solid #bccbd9;border-radius:5px;padding:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eff3f8;padding:20px;border-radius:5px;font-size:13px}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #3165ab;outline-offset:3px}[hidden]{display:none!important}@media(max-width:750px){header,main{width:calc(100% - 32px)}header span{display:none}.grid{grid-template-columns:1fr}.intro{padding-top:40px}.preview iframe{transform:scale(.4)}.preview{height:260px}}`;
-  const server = http.createServer((request, response) => {
+  const server = http.createServer((req, res) => {
+    let file;
     try {
-      const url = new URL(request.url, "http://localhost");
-      let body,
-        type = "text/html; charset=utf-8";
-      if (url.pathname === "/") body = html;
-      else if (url.pathname === "/gallery.js") {
-        body = js;
-        type = "text/javascript";
-      } else if (url.pathname === "/gallery.css") {
-        body = css;
-        type = "text/css";
-      } else if (url.pathname === "/api/health") {
-        body = JSON.stringify({ mode: "preview", configured: false });
-        type = "application/json";
-      } else {
-        const match = url.pathname.match(/^\/templates\/([a-z]+)\/(.*)$/);
-        if (!match || !cache.has(match[1])) {
-          response.writeHead(404);
-          response.end("Not found");
-          return;
-        }
-        const file = match[2] || "index.html";
-        if (file.includes("..") || file.includes("%")) {
-          response.writeHead(404);
-          response.end();
-          return;
-        }
-        body = cache.get(match[1])["public/" + file];
-        if (!body) {
-          response.writeHead(404);
-          response.end("Not found");
-          return;
-        }
-        if (file === "app.js")
-          body = body
-            .toString()
-            .replace(
-              "'/site-config.js'",
-              "'/templates/" + match[1] + "/site-config.js'",
-            );
-        type = file.endsWith(".css")
-          ? "text/css"
-          : file.endsWith(".js")
-            ? "text/javascript"
-            : file.endsWith(".svg")
-              ? "image/svg+xml"
-              : "text/html; charset=utf-8";
-        if (file.endsWith(".html"))
-          body = body
-            .toString()
-            .replace(/(href|src)="\//g, `$1="/templates/${match[1]}/`);
-      }
-      response.writeHead(200, {
-        "content-type": type,
-        "cache-control": "no-store",
-        "x-content-type-options": "nosniff",
-      });
-      response.end(body);
+      file = decodeURIComponent(
+        new URL(req.url, "http://localhost").pathname,
+      ).slice(1);
     } catch {
-      response.writeHead(500);
-      response.end("Preview unavailable.");
+      res.writeHead(400);
+      res.end();
+      return;
     }
+    if (file.includes("..") || file.includes("\\")) {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+    if (!file || file.endsWith("/")) file += "index.html";
+    const body = entries[file];
+    if (body === undefined) {
+      res.writeHead(404);
+      res.end("Not found");
+      return;
+    }
+    const extension = path.extname(file),
+      type =
+        file === "api/health"
+          ? "application/json"
+          : {
+              ".js": "text/javascript",
+              ".json": "application/json",
+              ".css": "text/css",
+              ".svg": "image/svg+xml",
+              ".png": "image/png",
+            }[extension] || "text/html; charset=utf-8";
+    res.writeHead(200, {
+      "content-type": type,
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+    });
+    res.end(body);
   });
   await new Promise((resolve, reject) => {
     server.once("error", reject);
@@ -100,7 +148,7 @@ export async function gallery(opts = {}) {
       ok: true,
       url: `http://127.0.0.1:${port}`,
       templates: TEMPLATES.length,
-      scope: "template-preview",
+      scope: "module-studio",
     }),
   );
   return server;

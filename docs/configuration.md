@@ -1,4 +1,6 @@
-# Configuration and delivery
+# Configuration
+
+See [the module guide](modules.md) for stack choices and downloadable project configurations. The new v0.5.0 examples refer to the prepared source branch until publication; run `node bin/opc.mjs` from that checkout to try them now. and delivery
 
 [README](../README.md)
 
@@ -10,7 +12,7 @@ Install once for both coding agents with Node.js 22.13 or later:
 npx --yes opc-harness@latest setup --global --host both
 ```
 
-Use `@0.4.0` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
+Use `@0.5.0` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
 
 If you prefer a persistent command on your PATH:
 

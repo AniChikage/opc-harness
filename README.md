@@ -2,7 +2,7 @@
 
 <h1 align="center">OPC Harness</h1>
 
-<p align="center">Pick a complete website. Set your defaults. Ship it.</p>
+<p align="center">See the website. Choose the modules. Ship the result.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/opc-harness"><img src="https://img.shields.io/npm/v/opc-harness?color=244b3e" alt="npm version"></a>
@@ -11,31 +11,43 @@
   <img src="https://img.shields.io/badge/Node.js-%E2%89%A522.13-244b3e" alt="Node.js 22.13 or later">
 </p>
 
-OPC Harness gives **Codex and Claude Code** a reusable website delivery workflow: complete selectable templates, personal defaults, payment setup, Cloudflare deployment, and checks that show what works.
+OPC Harness gives **Codex and Claude Code** a reusable website delivery workflow. Choose a finished frontend by its actual appearance, combine a compatible stack and payment mode, then generate, run and verify the project.
 
 Choose a finished layout instead of describing every visual detail. The gallery previews use the same renderer and assets as generated projects. Set your brand and content through configuration; the agent preserves the selected design.
 
-**v0.4.0** adds eight complete templates, a visual gallery, a terminal wizard, saved template preferences, configurable products, free sites without payment infrastructure, and static export. All documentation, prompts, and examples are in English.
+**The next release, v0.5.0,** adds a visual module studio, eleven complete templates, eleven ready-made recipes, independent Cloudflare / Vercel / static stacks, downloadable project configuration and example-first agent instructions. All documentation, prompts and examples are in English.
 
-![OPC Harness template library](docs/images/template-library.png)
+> Release availability: npm `latest` was verified as **0.3.0** on November 9, 2026. Version 0.5.0 is being prepared in this source branch and is not published. To try the new studio now, use the source-checkout commands below; the pinned npm commands apply after publication.
+
+```sh
+git clone --branch codex/module-studio https://github.com/AniChikage/opc-harness.git
+cd opc-harness
+node bin/opc.mjs gallery
+# Install this checkout into both agents when ready:
+node bin/opc.mjs setup --global --host both
+```
+
+![OPC Harness module studio](docs/images/module-studio.png)
+
+[Module guide and compatibility matrix](docs/modules.md) · [Complete frontend examples](docs/templates.md)
 
 ## Start once
 
 Requires **Node.js 22.13+**, npm, and an installed, authenticated Codex or Claude Code.
 
 ```sh
-npx --yes opc-harness@0.4.0 setup --global --host both
+npx --yes opc-harness@0.5.0 setup --global --host both
 ```
 
 Start a new agent session and describe the website:
 
 ```text
 Build a portfolio for my independent design studio.
-Show me the matching complete templates, let me choose one,
+Show me the matching example websites, let me choose a frontend and stack,
 and use that design exactly. Keep it free and deploy a Cloudflare preview.
 ```
 
-The installed Skill uses your profile, offers matching layouts when needed, creates the intended project, and follows its local workflow. A clearly requested website type or saved template can resolve the choice directly. Existing applications retain their framework and instructions.
+The installed Skill uses your profile, offers matching layouts when needed, creates the intended project, and follows its local workflow. An exact user-selected template proceeds directly; an unresolved frontend is shown as matching examples, with a saved default highlighted when applicable. Existing applications retain their framework and instructions.
 
 Setup copies a standalone runtime that survives npx cache removal, preserves unrelated personal instructions, and backs up changed files. Add `--dry-run --json` to inspect paths first. Automatic selection depends on the host loading its instructions and Skills; use a new session after installation.
 
@@ -44,19 +56,19 @@ Setup copies a standalone runtime that survives npx cache removal, preserves unr
 Browse the actual templates:
 
 ```sh
-npx --yes opc-harness@0.4.0 gallery
+npx --yes opc-harness@0.5.0 gallery
 ```
 
 Choose and generate interactively:
 
 ```sh
-npx --yes opc-harness@0.4.0 create --interactive
+npx --yes opc-harness@0.5.0 create --interactive
 ```
 
 Or use one explicit command:
 
 ```sh
-npx --yes opc-harness@0.4.0 create \
+npx --yes opc-harness@0.5.0 create \
   --dir ./my-studio --name my-studio --template portfolio \
   --brand 'North Star Studio' --email hello@example.com --host both
 cd my-studio
@@ -65,7 +77,7 @@ node .opc/runtime/bin/opc.mjs dev
 
 Without `--dir`, `create` uses a new `my-website` subdirectory. The command generates the website, local runtime, and both project Skills together. No model API key, hosting account, or payment account is required to create or preview a free site.
 
-## Eight complete templates
+## Eleven complete templates
 
 | Template | Use it for | Included behavior |
 | --- | --- | --- |
@@ -77,17 +89,45 @@ Without `--dir`, `create` uses a new `my-website` subdirectory. The command gene
 | `dashboard` | Personal task workspace | Create/delete tasks, change status, filter, export CSV |
 | `store` | Digital brief kit | Product page, FAQ, complete brief editor and export |
 | `event` | Event homepage | Agenda filters, session details, calendar download |
+| `pulse` | Bold product landing | Interactive workflow preview, feature tabs, brief workspace |
+| `studio` | Service landing | Service selection, project details, email inquiries |
+| `console` | Personal contact admin | Create/edit/delete contacts, stages, search, CSV export |
 
 Each template includes responsive layouts, keyboard focus, English sample content, and working controls. Local data is labeled accurately: tasks, favorites, and drafts are saved in the browser. Add your own product-specific backend when you need shared accounts, team data, or additional business workflows.
 
 [Template catalog and configuration](docs/templates.md) · [English paid-tool walkthrough](docs/website-example.md)
+
+## Compose the modules
+
+Choose frontend, stack, content, data and payments separately. The studio shows exact template previews, desktop/mobile modes, included functionality and related example websites before generation. Copy a command, download a configuration, or copy an agent prompt.
+
+| Stack | Runtime and output | Payments |
+| --- | --- | --- |
+| Cloudflare | Buildless frontend + Worker; D1 for orders | Free, demo, Stripe test |
+| Vercel | Complete static frontend in your selected project | Free |
+| Portable static | Complete frontend and folder export | Free |
+
+Browser-local tasks, contacts, drafts and favorites remain local. Shared user accounts and authentication are additional backend work.
+
+```sh
+# From this checkout; use opc-harness after the new version is published.
+node bin/opc.mjs create --dir ./my-launch --recipe bold-launch --host both
+node bin/opc.mjs create --dir ./my-admin --recipe personal-admin --host both
+node bin/opc.mjs create --dir ./my-site --project-config ./opc-project.json --host both
+node bin/opc.mjs templates --type landing --json
+node bin/opc.mjs modules --json
+```
+
+The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The studio can also be shared as a static website using `gallery --out DIR`.
+
+[Read the module guide](docs/modules.md) for combinations, prerequisites, verification and extension points.
 
 ## Configure once, reuse later
 
 Choose a default for future websites:
 
 ```sh
-npx --yes opc-harness@0.4.0 preferences --interactive
+npx --yes opc-harness@0.5.0 preferences --interactive
 ```
 
 Or configure a generated project:
