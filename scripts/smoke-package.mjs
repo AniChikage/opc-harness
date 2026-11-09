@@ -38,7 +38,7 @@ try {
     }
   }
   const archive = path.join(work, packed.filename);
-  const setup = JSON.parse(await run(npx, ['--yes', `--package=file:${archive}`, 'opc-harness', 'setup', '--global', '--host', 'both', '--home', home, '--json']));
+  const setup = JSON.parse(await run(npx, ['--yes', `--package=file:${archive}`, 'opc-harness', 'setup', '--global', '--host', 'both', '--template', 'directory', '--payment', 'none', '--home', home, '--json']));
   assert.equal(setup.ok, true); assert.deepEqual(setup.hosts, ['codex', 'claude']);
   for (const file of ['.agents/skills/opc-harness/SKILL.md', '.claude/skills/opc-harness/SKILL.md', '.codex/AGENTS.md', '.claude/CLAUDE.md']) {
     const text = await fs.readFile(path.join(home, file), 'utf8'); assert.ok(text.includes('opc-harness')); assert.ok(!text.includes(cache));
@@ -50,8 +50,16 @@ try {
   await run(process.execPath, [cli, 'scaffold'], project);
   const inspection = JSON.parse(await run(process.execPath, [cli, 'inspect', '--json'], project));
   assert.deepEqual(inspection.hosts, { codex: true, claude: true }); assert.equal(inspection.version, VERSION);
+  assert.equal(inspection.config.design.template,'directory');
+  const catalog=JSON.parse(await run(process.execPath,[cli,'templates','--json']));
+  for(const template of catalog.templates){const target=path.join(work,'template-'+template.id);await run(process.execPath,[cli,'create','--dir',target,'--name','package-'+template.id,'--template',template.id,'--host','both','--json']);await fs.access(path.join(target,'public/index.html'));}
+  const modules=JSON.parse(await run(process.execPath,[cli,'modules','--json']));
+  assert.equal(modules.stacks.length,3);
+  const recipes=JSON.parse(await run(process.execPath,[cli,'recipes','--json']));
+  for(const recipe of recipes.recipes){const target=path.join(work,'recipe-'+recipe.id);await run(process.execPath,[cli,'create','--dir',target,'--name','package-'+recipe.id,'--recipe',recipe.id,'--host','both','--json']);const c=JSON.parse(await fs.readFile(path.join(target,'.opc/project.json'),'utf8'));assert.equal(c.design.template,recipe.template);assert.equal(c.deploy.provider,recipe.stack);assert.equal(c.payments.mode,recipe.payment);}
+  const showroom=path.join(work,'showroom');await run(process.execPath,[cli,'gallery','--out',showroom,'--json']);await fs.access(path.join(showroom,'templates/console/index.html'));await fs.access(path.join(showroom,'studio.js'));
   const page = await fs.readFile(path.join(project, 'public/index.html'), 'utf8'); assert.ok(page.includes('lang="en"')); assert.ok(!/\p{Script=Han}/u.test(page));
   const repeated = JSON.parse(await run(process.execPath, [cli, 'setup', '--global', '--host', 'both', '--home', home, '--json']));
   assert.equal(repeated.changedFiles, 0);
-  console.log(JSON.stringify({ ok: true, version: VERSION, package: packed.filename, hosts: setup.hosts, packageDocumentationLinks: true, cacheIndependent: true, englishExample: true, repeatChanges: 0, ...(process.argv.includes('--keep') ? { work, home, project, archive } : {}) }));
+  console.log(JSON.stringify({ ok: true, version: VERSION, package: packed.filename, hosts: setup.hosts, templatesGenerated:catalog.templates.length,recipesGenerated:recipes.recipes.length,staticGalleryExport:true, savedTemplateDefault:true, packageDocumentationLinks: true, cacheIndependent: true, englishExample: true, repeatChanges: 0, ...(process.argv.includes('--keep') ? { work, home, project, archive } : {}) }));
 } finally { if (!process.argv.includes('--keep')) await fs.rm(work, { recursive: true, force: true }); }

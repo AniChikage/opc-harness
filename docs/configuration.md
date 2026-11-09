@@ -1,4 +1,6 @@
-# Configuration and delivery
+# Configuration
+
+See [the module guide](modules.md) for stack choices and downloadable project configurations. The new v0.5.0 examples refer to the prepared source branch until publication; run `node bin/opc.mjs` from that checkout to try them now. and delivery
 
 [README](../README.md)
 
@@ -10,7 +12,7 @@ Install once for both coding agents with Node.js 22.13 or later:
 npx --yes opc-harness@latest setup --global --host both
 ```
 
-Use `@0.3.0` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
+Use `@0.5.0` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
 
 If you prefer a persistent command on your PATH:
 
@@ -21,12 +23,12 @@ opc-harness setup --global --host both
 
 The package also provides the shorter `opc` command. Installing the npm package alone does not edit agent instructions; the explicit `setup` command performs that installation.
 
-The default profile contains preferences only:
+The default profile contains preferences only. Use `preferences --interactive` to select a complete template and save future-project defaults; see [the template guide](templates.md).
 
 ```json
 {
   "schemaVersion": 1,
-  "design": { "preset": "editorial" },
+  "design": { "preset": "editorial", "template": "paperplane" },
   "payments": { "mode": "demo" },
   "deploy": { "provider": "cloudflare", "tier": "preview" }
 }
@@ -70,7 +72,7 @@ The project configuration is independent of later changes to your personal defau
 {
   "schemaVersion": 1,
   "name": "my-paid-site",
-  "design": { "preset": "editorial" },
+  "design": { "preset": "editorial", "template": "paperplane" },
   "payments": { "mode": "demo" },
   "deploy": { "provider": "cloudflare", "tier": "preview" }
 }
@@ -80,7 +82,7 @@ For new projects, profile resolution is explicit `--profile`, then `OPC_HARNESS_
 
 ## Stripe test payments
 
-The starter's server product is a one-time **$19 USD** purchase. If adapting the product, change its server definition and create an exactly matching test Price. The agent still needs to implement and verify the product's actual output.
+The starter's default server product is a one-time **$19 USD** purchase. `configure --amount 2900 --currency cny` changes the generated server and browser product together. Free sites use `--payment none` and require no payment database. If adapting the product, change its server definition and create an exactly matching test Price. The agent still needs to implement and verify the product's actual output.
 
 1. Obtain a Stripe testing environment and a test server key.
 2. Set both `.opc/project.json` → `payments.mode` and `wrangler.jsonc` → `vars.PAYMENT_MODE` to `stripe_test`.

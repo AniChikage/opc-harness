@@ -3,11 +3,51 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import crypto from 'node:crypto';
-import { globalSetup, defaultProfile } from './global.mjs';
-import { PACKAGE_ROOT, VERSION, ZERO_ID, fail, exists, readJSON, write, writeJSON, filesIn, validateConfig, configAt, managedWrite, fingerprint, evidence, safePath, redact } from './core.mjs';
+import { TEMPLATES, templateById, siteDefaults } from './catalog.mjs';
+import { selectedModules } from './modules.mjs';
+import { selectionOptions } from './selection.mjs';
+import { staticDev, staticVerify, vercelDeploy } from './static.mjs';
+import { templateEntries } from './render.mjs';
+import { globalSetup, defaultProfile, globalPaths } from './global.mjs';
+import { PACKAGE_ROOT, VERSION, ZERO_ID, fail, exists, readJSON, write, writeJSON, filesIn, validateConfig, configAt, managedWrite, fingerprint, evidence, safePath, redact, digest } from './core.mjs';
 
 const BEGIN='<!-- opc-harness:begin -->', END='<!-- opc-harness:end -->';
 const ENTRY=`${BEGIN}\nFor website creation or changes involving design, payment, or deployment, use the opc-build-website skill.\nRead .opc/project.json and run \`node .opc/runtime/bin/opc.mjs inspect --json\` from this project root first.\nUse the shared skill and capability references; preserve existing user requirements and authorization.\nRun scoped verification before declaring completion; distinguish local demo, Stripe test, packaging, and remote deployment.\n${END}`;
+export async function siteOptions(opts={}) {
+  const site={...opts.site,...(opts['site-config']?await readJSON(path.resolve(opts['site-config'])):{})};
+  if(!site||Array.isArray(site)||typeof site!=='object') fail('--site-config must contain a site object.','INVALID_CONFIG');
+  for(const key of ['brand','headline','description','accent']) if(opts[key]!==undefined)site[key]=opts[key];
+  if(opts.email!==undefined)site.contactEmail=opts.email;
+  return site;
+}
+export async function preferences(root,opts={}) {
+  opts=await selectionOptions(opts);
+  const file=await defaultProfile(opts)||globalPaths(opts).profile;
+  await safePath(path.dirname(file),path.basename(file));
+  const previous=await readJSON(file,null),id=opts.template||previous?.design?.template||'paperplane';
+  const profile={...(previous||{}),schemaVersion:1,design:{preset:'editorial',...previous?.design,template:id},site:{...previous?.site,...await siteOptions(opts)},payments:{...previous?.payments,mode:opts.payment||previous?.payments?.mode||templateById(id)?.payment||'demo',...((opts.amount||opts.currency)?{product:{amount:Number(opts.amount||previous?.payments?.product?.amount||1900),currency:opts.currency||previous?.payments?.product?.currency||'usd'}}:{})},deploy:{...previous?.deploy,provider:opts.stack||previous?.deploy?.provider||'cloudflare',tier:'preview'}};
+  validateConfig({...profile,name:'profile-validation'});
+  if(opts['dry-run'])return {ok:true,dryRun:true,profile:file,template:id,mode:profile.payments.mode};
+  if(previous)await write(path.dirname(file),path.basename(file)+'.bak',await fs.readFile(file));
+  await writeJSON(path.dirname(file),path.basename(file),profile);await fs.chmod(file,0o600);
+  return {ok:true,profile:file,template:id,mode:profile.payments.mode,note:'New projects inherit these defaults. Existing projects are preserved.'};
+}
+export async function create(root,opts={}) {const initialized=await init(root,opts);const generated=await scaffold(root);return {...initialized,template:(await configAt(root)).design.template||'paperplane',files:generated.files,next:'Run node .opc/runtime/bin/opc.mjs dev from the reported project directory.'};}
+export async function configure(root,opts={}) {
+  opts=await selectionOptions(opts);
+  const current=await configAt(root),configFile='.opc/project.json',expected={[configFile]:digest(await fs.readFile(path.join(root,configFile)))};
+  if(!await exists(path.join(root,'public/index.html')))fail('Run scaffold before configuring the generated site.','MISSING_SCAFFOLD');
+  if(opts.stack&&opts.stack!==current.deploy.provider)fail('Choose a new project directory to change deployment stacks. Existing provider resources and files are preserved.','CONFIG_CONFLICT');
+  const next=validateConfig({...current,design:{...current.design,...(opts.template?{template:opts.template}:{})},site:{...current.site,...await siteOptions(opts)},payments:{...current.payments,...(opts.payment?{mode:opts.payment}:{}),...((opts.amount||opts.currency)?{product:{amount:Number(opts.amount||current.payments.product?.amount||1900),currency:opts.currency||current.payments.product?.currency||'usd'}}:{})}});
+  if(await exists(path.join(root,'.opc/resources.json'))&&next.payments.mode!==current.payments.mode) fail('An owned deployment exists. Payment mode changes require an explicit deployment migration.','CONFIG_CONFLICT');
+  const entries=await templateEntries(next),wranglerFile='wrangler.jsonc';
+  if(await exists(path.join(root,wranglerFile))){const bytes=await fs.readFile(path.join(root,wranglerFile));expected[wranglerFile]=digest(bytes);const w=JSON.parse(bytes);if(w.name!==current.name||w.vars?.PAYMENT_MODE!==current.payments.mode)fail('Worker configuration differs from the project.','CONFIG_CONFLICT');w.vars.PAYMENT_MODE=next.payments.mode;if(next.payments.mode==='none')delete w.d1_databases;else w.d1_databases||=[{binding:'DB',database_name:`${next.name}-orders`,database_id:ZERO_ID,migrations_dir:'migrations'}];entries[wranglerFile]=JSON.stringify(w,null,2)+'\n';}
+  entries[configFile]=JSON.stringify(next,null,2)+'\n';
+  if(opts['dry-run'])return {ok:true,dryRun:true,config:next,files:Object.keys(entries)};
+  await managedWrite(root,entries,{expected});return {ok:true,config:next,files:Object.keys(entries),note:'Configuration and untouched template files updated. Existing application edits are never overwritten.'};
+}
+export async function doctor(root){const info=await inspect(root),checks=[{name:'node',pass:(Number(process.versions.node.split('.')[0])>22||(Number(process.versions.node.split('.')[0])===22&&Number(process.versions.node.split('.')[1])>=13))},{name:'agent-entry',pass:info.hosts.codex||info.hosts.claude},{name:'website-generated',pass:info.scaffolded},...info.blockers.map(b=>({name:b.missing,pass:false,action:b.action}))];return {ok:checks.every(c=>c.pass),checks,template:info.config.design.template||'paperplane',payments:info.config.payments,modules:info.modules,accounts:info.config.deploy.provider==='vercel'?['Vercel account with VERCEL_TOKEN and VERCEL_PROJECT_ID; VERCEL_TEAM_ID for teams']:info.config.deploy.provider==='static'?['No account for local preview or export']:info.config.payments.mode==='stripe_test'?['Cloudflare account for deployment','Stripe testing environment and the three reported test values']:['Cloudflare account only when deploying; no account needed for local preview or static export'],remoteAuthentication:'Not checked by this offline report.',next:await plan(root)};}
+export async function exportSite(root,opts={}){const c=await configAt(root);if(c.payments.mode!=='none')fail('Static export requires payments.mode=none. Paid checkout needs the Worker backend.','INVALID_CONFIG');if(!opts.out)fail('Provide --out for the exported directory.','INVALID_ARGUMENT');const dest=path.resolve(opts.out);if(dest===root||dest.startsWith(root+path.sep))fail('Export into a separate directory.','UNSAFE_PATH');const entries={};for(const file of await filesIn(path.join(root,'public')))entries[file]=await fs.readFile(path.join(root,'public',file));if(!entries['index.html'])fail('Run scaffold first.','MISSING_SCAFFOLD');entries['opc-build.json']=JSON.stringify({name:c.name,buildId:await fingerprint(root),mode:'none',provider:c.deploy.provider})+'\n';await managedWrite(dest,entries);return {ok:true,directory:dest,files:Object.keys(entries),scope:'static-export',note:'Host these files at an HTTP(S) origin root. No payment backend is included.'};}
 async function sourceEntries(dir,dest) { const out={}; for (const rel of await filesIn(dir)) out[path.posix.join(dest,rel)]=await fs.readFile(path.join(dir,rel)); return out; }
 function mergeEntry(old) {
   const a=old.indexOf(BEGIN),b=old.indexOf(END);
@@ -15,24 +55,32 @@ function mergeEntry(old) {
   return a<0 ? old+(old.endsWith('\n')||!old?'':'\n')+'\n'+ENTRY+'\n' : old.slice(0,a)+ENTRY+old.slice(b+END.length);
 }
 export async function setup(root,opts={}) {
+  opts=await selectionOptions(opts);
   if(opts.global) return globalSetup(root,opts);
   const file=path.resolve(opts.profile||path.join(root,'.opc/profile.json'));
   if (await exists(file)) return {ok:true,profile:file,preserved:true};
-  const mode=opts.payment||'demo'; if(!['demo','stripe_test'].includes(mode)) fail('Invalid payment mode.','INVALID_CONFIG');
-  await writeJSON(path.dirname(file),path.basename(file),{schemaVersion:1,design:{preset:'editorial'},payments:{mode},deploy:{provider:'cloudflare',tier:'preview'}});
+  const id=opts.template||'paperplane',mode=opts.payment||templateById(id)?.payment||'demo';
+  const profile={schemaVersion:1,design:{preset:'editorial',template:id},site:await siteOptions(opts),payments:{mode,...((opts.amount||opts.currency)?{product:{amount:Number(opts.amount||1900),currency:opts.currency||'usd'}}:{})},deploy:{provider:opts.stack||'cloudflare',tier:'preview'}};
+  validateConfig({...profile,name:'profile-validation'});
+  if(opts['dry-run'])return {ok:true,dryRun:true,profile:file,template:id,mode};
+  await writeJSON(path.dirname(file),path.basename(file),profile);
   return {ok:true,profile:file,note:'Local preferences only. Credentials remain in environment variables or .dev.vars.'};
 }
 export async function init(root,opts={}) {
+  opts=await selectionOptions(opts);
   const host=opts.host||'both'; if(!['both','codex','claude'].includes(host)) fail('host must be both, codex, or claude.','INVALID_ARGUMENT');
   await safePath(root,'.opc/project.json');
   const existing=await readJSON(path.join(root,'.opc/project.json'),null);
   let profile={}; const profileFile=existing?null:await defaultProfile(opts);
   if(profileFile) { await safePath(path.dirname(profileFile),path.basename(profileFile));profile=await readJSON(profileFile); if(profile.schemaVersion!==1) fail('Unsupported profile schema.','INVALID_CONFIG'); }
   const name=opts.name || path.basename(root).toLowerCase().replace(/[^a-z0-9-]/g,'-');
-  const config=validateConfig(existing || {schemaVersion:1,name,design:profile.design||{preset:'editorial'},payments:{mode:opts.payment||profile.payments?.mode||'demo'},deploy:profile.deploy||{provider:'cloudflare',tier:'preview'}});
+  const id=opts.template||profile.design?.template||'paperplane';
+  const config=validateConfig(existing || {schemaVersion:1,name,design:{preset:'editorial',...profile.design,template:id},site:{...profile.site,...await siteOptions(opts)},payments:{...profile.payments,mode:opts.payment||(opts.template?templateById(id)?.payment:profile.payments?.mode)||'demo',...((opts.amount||opts.currency)?{product:{amount:Number(opts.amount||profile.payments?.product?.amount||1900),currency:opts.currency||profile.payments?.product?.currency||'usd'}}:{})},deploy:{...profile.deploy,provider:opts.stack||profile.deploy?.provider||'cloudflare',tier:'preview'}});
+  if(existing&&opts.stack&&opts.stack!==existing.deploy.provider)fail('Existing deployment stack is preserved. Use a new project directory for a different stack.','CONFIG_CONFLICT');
+  if(existing&&opts.template&&opts.template!==(existing.design.template||'paperplane')) fail('Use configure to change an existing template.','CONFIG_CONFLICT');
   if(existing && ((opts.name && opts.name!==existing.name)||(opts.payment && opts.payment!==existing.payments.mode))) fail('Existing project configuration is preserved. Edit .opc/project.json explicitly to change it.','CONFIG_CONFLICT');
   const entries={};
-  for(const folder of ['bin','src','templates','skills']) Object.assign(entries,await sourceEntries(path.join(PACKAGE_ROOT,folder),`.opc/runtime/${folder}`));
+  for(const folder of ['bin','src','templates','skills','scripts']) Object.assign(entries,await sourceEntries(path.join(PACKAGE_ROOT,folder),`.opc/runtime/${folder}`));
   entries['.opc/runtime/package.json']=await fs.readFile(path.join(PACKAGE_ROOT,'package.json'));
   if(await exists(path.join(PACKAGE_ROOT,'package-lock.json'))) entries['.opc/runtime/package-lock.json']=await fs.readFile(path.join(PACKAGE_ROOT,'package-lock.json'));
   if(await exists(path.join(PACKAGE_ROOT,'npm-shrinkwrap.json'))) entries['.opc/runtime/npm-shrinkwrap.json']=await fs.readFile(path.join(PACKAGE_ROOT,'npm-shrinkwrap.json'));
@@ -46,27 +94,35 @@ export async function init(root,opts={}) {
   await managedWrite(root,entries);
   if(!existing) await writeJSON(root,'.opc/project.json',config);
   for(const [rel,content] of Object.entries(instructions)) await write(root,rel,content);
-  if(!await exists(path.join(root,'.opc/design-brief.md'))) await write(root,'.opc/design-brief.md',`# Design brief\n\n${opts.brief||'Adapt the paid-tool starter to the user’s product and audience before delivery.'}\n\nPreset: editorial. Preserve the user’s requested product, language, pricing, and references.\n`);
+  if(!await exists(path.join(root,'.opc/design-brief.md'))) await write(root,'.opc/design-brief.md',`# Design brief\n\n${opts.brief||'Use the selected complete template as supplied. Change content only when requested.'}\n\nTemplate: ${config.design.template||'paperplane'}. Preserve its layout, typography, and interactions. Apply site configuration instead of redesigning.\n`);
   const ignoreFile=await safePath(root,'.gitignore'); let ignore=await exists(ignoreFile)?await fs.readFile(ignoreFile,'utf8'):'';
-  for(const line of ['node_modules/','.dev.vars*','!.dev.vars.example','.env*','.wrangler/','.opc/runtime/','.opc/state.json','.opc/evidence/','.opc/build/']) if(!ignore.split(/\r?\n/).includes(line)) ignore+=(ignore.endsWith('\n')||!ignore?'':'\n')+line+'\n';
+  for(const line of ['node_modules/','.dev.vars*','!.dev.vars.example','.env*','.wrangler/','.opc/runtime/','.opc/state.json','.opc/evidence/','.opc/build/','.vercel/']) if(!ignore.split(/\r?\n/).includes(line)) ignore+=(ignore.endsWith('\n')||!ignore?'':'\n')+line+'\n';
   await write(root,'.gitignore',ignore);
   return {ok:true,project:root,name:config.name,hosts,mode:config.payments.mode,next:['node .opc/runtime/bin/opc.mjs scaffold','node .opc/runtime/bin/opc.mjs dev'],note:'Project-local install; no global agent settings modified.'};
 }
 export async function inspect(root) {
   const c=await configAt(root); const fp=await fingerprint(root); const state=await readJSON(path.join(root,'.opc/state.json'),{capabilities:{}});
   const credentials={}; const local=await readLocalVars(root);
-  for(const name of ['STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRICE_ID','CLOUDFLARE_API_TOKEN','CLOUDFLARE_ACCOUNT_ID']) credentials[name]={present:!!(process.env[name]||local[name]),source:process.env[name]?'environment':local[name]?'.dev.vars':'missing'};
+  for(const name of ['STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRICE_ID','CLOUDFLARE_API_TOKEN','CLOUDFLARE_ACCOUNT_ID','VERCEL_TOKEN','VERCEL_PROJECT_ID','VERCEL_TEAM_ID']) credentials[name]={present:!!(process.env[name]||local[name]),source:process.env[name]?'environment':local[name]?'.dev.vars':'missing'};
   const blockers=[];
+  if(c.deploy.provider==='vercel')for(const n of ['VERCEL_TOKEN','VERCEL_PROJECT_ID'])if(!credentials[n].present)blockers.push({capability:'deployment',missing:n,action:`Set ${n} in the environment or .dev.vars for your selected Vercel project. Team projects also require VERCEL_TEAM_ID.`});
   if(c.payments.mode==='stripe_test') for(const n of ['STRIPE_SECRET_KEY','STRIPE_WEBHOOK_SECRET','STRIPE_PRICE_ID']) if(!credentials[n].present) blockers.push({capability:'payments',missing:n,action:`Set ${n} using .dev.vars locally or Wrangler secrets remotely. Never paste secrets into agent instructions.`});
-  return {ok:true,version:VERSION,project:root,config:c,hosts:{codex:await exists(path.join(root,'.agents/skills/opc-build-website/SKILL.md')),claude:await exists(path.join(root,'.claude/skills/opc-build-website/SKILL.md'))},scaffolded:await exists(path.join(root,'worker.mjs')),credentials,evidence:Object.fromEntries(Object.entries(state.capabilities||{}).map(([k,v])=>[k,{...v,stale:v.fingerprint!==fp}])),blockers,next:blockers.length?'Continue design and local application work; resume Stripe validation after credential setup.':'Run plan, scaffold if needed, then dev and scoped verification.'};
+  return {ok:true,version:VERSION,project:root,config:c,hosts:{codex:await exists(path.join(root,'.agents/skills/opc-build-website/SKILL.md')),claude:await exists(path.join(root,'.claude/skills/opc-build-website/SKILL.md'))},modules:selectedModules(c),scaffolded:await exists(path.join(root,'public/index.html')),credentials,evidence:Object.fromEntries(Object.entries(state.capabilities||{}).map(([k,v])=>[k,{...v,stale:v.fingerprint!==fp}])),blockers,next:blockers.length?'Continue design and local application work; resume blocked payment or deployment checks after configuration.':'Run plan, scaffold if needed, then dev and scoped verification.'};
 }
-export async function plan(root) { const i=await inspect(root); return {ok:true,name:i.config.name,capabilities:[{id:'design',requires:[],recipe:'editorial paid-tool',action:'Read .opc/design-brief.md; adapt public/ to the product and verify responsive UI.'},{id:'payments',requires:['worker','D1'],mode:i.config.payments.mode,action:i.config.payments.mode==='demo'?'Run payments test against the local app.':'Configure Stripe TEST keys, test Price, signed webhooks; run an actual Stripe test checkout.'},{id:'deployment',requires:['design','payments','cloudflare_auth'],provider:'cloudflare',tier:'preview',action:'Dry-run package, then deploy; verify returned URL and matching build identity.'}],blockers:i.blockers}; }
+export async function plan(root) {
+  const i=await inspect(root), modules=selectedModules(i.config);
+  return {ok:true,name:i.config.name,template:templateById(i.config.design.template||'paperplane'),modules,capabilities:[
+    {id:'design',requires:[],recipe:modules.frontend.template,action:'Open gallery for the exact example, preserve the selected template, and apply site content through configure.'},
+    {id:'data',requires:[],mode:modules.data.id,action:modules.data.description},
+    {id:'payments',requires:i.config.payments.mode==='none'?[]:['worker','D1'],mode:i.config.payments.mode,action:modules.payments.description},
+    {id:'deployment',requires:['design',...(i.config.payments.mode==='none'?[]:['payments']),...(i.config.deploy.provider==='static'?[]:[i.config.deploy.provider+'_auth'])],provider:i.config.deploy.provider,tier:'preview',action:modules.stack.deploy}],blockers:i.blockers};
+}
 export async function scaffold(root) {
-  const c=await configAt(root); const entries=await sourceEntries(path.join(PACKAGE_ROOT,'templates/paid-site'),'');
+  const c=await configAt(root); const entries=await templateEntries(c);
   const existing=await readJSON(path.join(root,'wrangler.jsonc'),null);
-  const wrangler=existing||{name:c.name,main:'worker.mjs',compatibility_date:'2026-11-01',assets:{directory:'./public',binding:'ASSETS',run_worker_first:['/api/*','/demo-checkout']},vars:{APP_NAME:c.name,PAYMENT_MODE:c.payments.mode,DEPLOYMENT_TIER:'local'},d1_databases:[{binding:'DB',database_name:`${c.name}-orders`,database_id:ZERO_ID,migrations_dir:'migrations'}],observability:{enabled:false}};
+  const wrangler=existing||{name:c.name,main:'worker.mjs',compatibility_date:'2026-11-01',assets:{directory:'./public',binding:'ASSETS',run_worker_first:['/api/*','/demo-checkout']},vars:{APP_NAME:c.name,PAYMENT_MODE:c.payments.mode,DEPLOYMENT_TIER:'local'},...(c.payments.mode==='none'?{}:{d1_databases:[{binding:'DB',database_name:`${c.name}-orders`,database_id:ZERO_ID,migrations_dir:'migrations'}]}),observability:{enabled:false}};
   if(existing && (existing.vars?.PAYMENT_MODE!==c.payments.mode)) fail('Payment mode differs from wrangler.jsonc. Align both configs explicitly.','CONFIG_CONFLICT');
-  if(!existing) entries['wrangler.jsonc']=JSON.stringify(wrangler,null,2)+'\n';
+  if(!existing&&c.deploy.provider==='cloudflare') entries['wrangler.jsonc']=JSON.stringify(wrangler,null,2)+'\n';
   await managedWrite(root,entries);
   return {ok:true,project:root,files:Object.keys(entries),mode:c.payments.mode,next:'node .opc/runtime/bin/opc.mjs dev'};
 }
@@ -87,14 +143,16 @@ async function wrangler(root,args,{inherit=false,input}={}) {
   return r;
 }
 export async function dev(root,opts={}) {
+  const config=await configAt(root);if(config.deploy.provider!=='cloudflare')return staticDev(root,opts);
   await configAt(root); if(!await exists(path.join(root,'worker.mjs'))) await scaffold(root);
   const port=Number(opts.port||8787);if(!Number.isInteger(port)||port<1024||port>65535) fail('port must be 1024–65535.','INVALID_ARGUMENT');
-  await wrangler(root,['d1','migrations','apply','DB','--local']);
+  if((await configAt(root)).payments.mode!=='none') await wrangler(root,['d1','migrations','apply','DB','--local']);
   await wrangler(root,['dev','--ip','127.0.0.1','--port',String(port)],{inherit:true});
 }
 function baseURL(value) { if(!value) fail('Provide --url (local or deployed application URL).','INVALID_ARGUMENT'); let url;try{url=new URL(value);}catch{fail('Invalid --url.','INVALID_ARGUMENT');} if(!['http:','https:'].includes(url.protocol)||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname)) fail('Use an HTTP(S) origin without credentials, path, query, or fragment.','INVALID_ARGUMENT'); return url.origin; }
 async function request(url,options={}) { const r=await fetch(url,{signal:AbortSignal.timeout(15000),redirect:'error',...options}); let body;try{body=await r.json();}catch{body=null;} return {status:r.status,body}; }
 export async function verify(root,opts={}) {
+  if((await configAt(root)).deploy.provider!=='cloudflare')return staticVerify(root,opts);
   const c=await configAt(root),url=baseURL(opts.url); const fp=await fingerprint(root),checks=[];
   try { const h=await request(url+'/api/health'); checks.push({name:'worker-health',pass:h.status===200&&h.body?.ok===true}); checks.push({name:'project-identity',pass:h.body?.app==='opc-paid-site'&&h.body?.name===c.name}); checks.push({name:'payment-mode',pass:h.body?.mode===c.payments.mode}); checks.push({name:'payment-configured',pass:h.body?.configured===true});
     const state=await readJSON(path.join(root,'.opc/state.json'),{capabilities:{}}); const deployment=state.capabilities?.deployment;
@@ -112,6 +170,7 @@ export async function verify(root,opts={}) {
 }
 export async function paymentTest(root,opts={}) {
   const c=await configAt(root),url=baseURL(opts.url);
+  if(c.deploy.provider!=='cloudflare'){const verification=await staticVerify(root,{url});return evidence(root,'payments',{ok:verification.ok,scope:'payments-disabled',url,checks:verification.checks,note:'No checkout was attempted. Static identity was checked; browser export remains separate.'});}
   try { return await paymentTestFlow(root,{...opts,url}); }
   catch(error) { return evidence(root,'payments',{ok:false,scope:c.payments.mode==='demo'?'demo-e2e':'stripe-test-unverified',url,checks:[{name:'payment-environment',pass:false,error:redact(error.message)}]}); }
 }
@@ -120,6 +179,7 @@ async function paymentTestFlow(root,opts={}) {
   const c=await configAt(root);
   if(health.body?.app!=='opc-paid-site'||health.body?.name!==c.name) fail('Application identity does not match this project. No payment actions were attempted.','IDENTITY_MISMATCH');
   if(health.body?.mode!==c.payments.mode) fail('Payment mode differs from this project configuration. No payment actions were attempted.','CONFIG_CONFLICT');
+  if(c.payments.mode==='none') return evidence(root,'payments',{ok:health.status===200&&health.body.configured===true,scope:'payments-disabled',url,checks:[{name:'payments-disabled',pass:health.body.mode==='none'}],note:'No checkout was attempted. Browser free-export verification remains separate.'});
   if(health.body?.mode!=='demo') { const record=await evidence(root,'payments',{ok:false,status:'blocked',scope:'stripe-test-unverified',url,blockers:['Automated simulation runs only in demo mode. Use a real Stripe TEST checkout and signed Stripe webhook, then verify the resulting entitlement.'],checks});return {...record,ok:false}; }
   if(health.status!==200||health.body?.configured!==true) fail('The demo payment environment is not configured.','PAYMENTS_NOT_CONFIGURED');
   const check=(name,pass)=>checks.push({name,pass:!!pass});
@@ -230,7 +290,9 @@ async function reuseOwnedDatabase(root,c,config,resources,accountId,databases,so
   await writeJSON(root,'wrangler.jsonc',config);
 }
 export async function deploy(root,opts={}) {
-  const c=await configAt(root); if(!await exists(path.join(root,'worker.mjs'))) fail('Run scaffold before deployment.','MISSING_SCAFFOLD');
+  const c=await configAt(root);
+  if(c.deploy.provider==='static')fail('Portable static sites use export --out DIR. Select Vercel or Cloudflare in a new project for automated deployment.','STATIC_EXPORT_REQUIRED');
+  if(c.deploy.provider==='vercel')return vercelDeploy(root,opts);  if(!await exists(path.join(root,'worker.mjs'))) fail('Run scaffold before deployment.','MISSING_SCAFFOLD');
   const config=await readJSON(path.join(root,'wrangler.jsonc'));
   if(config.name!==c.name || config.vars?.PAYMENT_MODE!==c.payments.mode) fail('Align Worker name and PAYMENT_MODE in wrangler.jsonc and .opc/project.json.','CONFIG_CONFLICT');
   // Packaging is read-only and happens before account/resource mutations on every deployment.
@@ -240,10 +302,11 @@ export async function deploy(root,opts={}) {
   try {
     const accountId=await deploymentAccount(root,config);
     const db=config.d1_databases?.find(x=>x.binding==='DB');
-    if(!db || !/^[A-Za-z0-9_-]{3,100}$/.test(db.database_name||'')) fail('A named D1 DB binding is required.','INVALID_CONFIG');
+    if(c.payments.mode!=='none'&&(!db || !/^[A-Za-z0-9_-]{3,100}$/.test(db.database_name||''))) fail('A named D1 DB binding is required.','INVALID_CONFIG');
+    if(c.payments.mode==='none'&&(db||opts['reuse-database-from'])) fail('Free templates must not use payment database bindings.','CONFIG_CONFLICT');
     await safePath(root,'.opc/resources.json');
-    const resources=await readJSON(path.join(root,'.opc/resources.json'),{schemaVersion:1,accountId,workerName:config.name,databaseName:db.database_name,pendingCreation:{}});
-    if(resources.schemaVersion!==1 || resources.accountId!==accountId || resources.workerName!==config.name || (resources.databaseName!==db.database_name&&!opts['reuse-database-from'])) fail('Resource ownership record does not match this project/account. No remote resources were changed.','REMOTE_CONFLICT');
+    const resources=await readJSON(path.join(root,'.opc/resources.json'),{schemaVersion:1,accountId,workerName:config.name,...(db?{databaseName:db.database_name}:{}),pendingCreation:{}});
+    if(resources.schemaVersion!==1 || resources.accountId!==accountId || resources.workerName!==config.name || (resources.databaseName!==db?.database_name&&!opts['reuse-database-from'])) fail('Resource ownership record does not match this project/account. No remote resources were changed.','REMOTE_CONFLICT');
     resources.pendingCreation ||= {};
     let worker=await workerVersions(root,config.name);
     const latest=newestVersion(worker.versions);
@@ -264,6 +327,7 @@ export async function deploy(root,opts={}) {
       if(!Array.isArray(databases)) fail('Cloudflare returned invalid D1 resources.','REMOTE_RESPONSE');
       return databases;
     };
+    if(c.payments.mode!=='none') {
     let databases=await listDatabases();
     if(opts['reuse-database-from']) await reuseOwnedDatabase(root,c,config,resources,accountId,databases,opts['reuse-database-from']);
     if(resources.sharedDatabase) {
@@ -298,6 +362,7 @@ export async function deploy(root,opts={}) {
     db.database_id=resources.databaseId;
     await writeJSON(root,'wrangler.jsonc',config);
     await wrangler(root,['d1','migrations','apply','DB','--remote']);
+    } else await writeJSON(root,'wrangler.jsonc',config);
     const buildId=await fingerprint(root),tag=`opc-${crypto.randomBytes(12).toString('hex')}`;
     resources.pendingCreation.worker={tag,buildId,accountId,name:config.name,at:new Date().toISOString(),previousVersionId:resources.workerVersionId||null};
     await saveResources(root,resources);

@@ -34,7 +34,7 @@ const reply = (data, status = 200) => new Response(JSON.stringify(data), { statu
 const invalid = (message = 'Invalid request.') => { throw new HttpError(400, 'invalid_request', message); };
 function paymentMode(env) {
   const mode = env.PAYMENT_MODE || 'demo';
-  if (!['demo', 'stripe_test'].includes(mode)) throw new HttpError(503, 'invalid_payment_mode', 'Supported payment modes are demo and stripe_test.');
+  if (!['none', 'demo', 'stripe_test'].includes(mode)) throw new HttpError(503, 'invalid_payment_mode', 'Supported payment modes are none, demo and stripe_test.');
   return mode;
 }
 function stripeConfiguration(env) {
@@ -45,7 +45,7 @@ function stripeConfiguration(env) {
   };
 }
 function requireStripe(env) {
-  if (!Object.values(stripeConfiguration(env)).every(Boolean)) throw new HttpError(503, 'stripe_not_configured', 'Configure a Stripe test key, webhook signing secret and one-time $19 USD price. Live keys are not supported by this MVP.');
+  if (!Object.values(stripeConfiguration(env)).every(Boolean)) throw new HttpError(503, 'stripe_not_configured', 'Configure a Stripe test key, webhook signing secret and matching one-time test price. Live keys are not supported by this MVP.');
 }
 function originFor(request, env) {
   const origin = new URL(env.APP_ORIGIN || request.url);
@@ -104,7 +104,7 @@ async function stripeFetch(path, env, options = {}) {
 async function stripeSession(env, order, token, origin) {
   const price = await stripeFetch(`prices/${encodeURIComponent(env.STRIPE_PRICE_ID)}`, env);
   if (price.livemode !== false || !price.active || price.type !== 'one_time' || price.unit_amount !== PRODUCT.amount || price.currency !== PRODUCT.currency) {
-    throw new HttpError(503, 'price_mismatch', 'STRIPE_PRICE_ID must be an active one-time $19.00 USD test price.');
+    throw new HttpError(503, 'price_mismatch', 'STRIPE_PRICE_ID must match the configured one-time test product amount and currency.');
   }
   const success = `${origin}/success.html?order_id=${encodeURIComponent(order.order_id)}&token=${encodeURIComponent(token)}&checkout=success`;
   const fields = new URLSearchParams({ mode: 'payment', 'line_items[0][price]': env.STRIPE_PRICE_ID, 'line_items[0][quantity]': '1',
@@ -196,7 +196,7 @@ async function health(env) {
   let database = false;
   try { await env.DB.prepare('SELECT order_id FROM opc_orders LIMIT 1').first(); database = true; } catch {}
   let mode; try { mode = paymentMode(env); } catch { mode = 'invalid'; }
-  const checks = { database, ...(mode === 'stripe_test' ? stripeConfiguration(env) : {}) };
+  const checks = { ...(mode === 'none' ? {} : {database}), ...(mode === 'stripe_test' ? stripeConfiguration(env) : {}) };
   const configured = mode !== 'invalid' && Object.values(checks).every(Boolean);
   return reply({ ok: configured, app: 'opc-paid-site', name: env.APP_NAME || 'unconfigured', version: '0.1.0', mode, configured, checks, buildId: env.BUILD_ID || 'development', deploymentTier: env.DEPLOYMENT_TIER || 'local' }, configured ? 200 : 503);
 }
@@ -204,6 +204,7 @@ export async function handleRequest(request, env) {
   try {
     const url = new URL(request.url);
     if (url.pathname === '/api/health' && request.method === 'GET') return health(env);
+    if (url.pathname.startsWith('/api/') && paymentMode(env)==='none') throw new HttpError(404,'not_found','Payments are disabled for this website.');
     if (url.pathname === '/api/checkout' && request.method === 'POST') return await checkout(request, env);
     if (url.pathname === '/api/webhooks/stripe' && request.method === 'POST') return await webhook(request, env);
     if (url.pathname === '/api/demo/complete' && request.method === 'POST') return await demoComplete(request, env);

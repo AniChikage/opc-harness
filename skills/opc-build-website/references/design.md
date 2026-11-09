@@ -1,13 +1,13 @@
-# Design and product adaptation
+# Template selection and design
 
-Before editing the starter, establish a compact brief from the user's product intent and any provided references. Record it in `.opc/design-brief.md`: audience, primary task, first useful result, necessary screens, visual direction, and any explicit constraints. Infer reasonable defaults from the project; do not ask the user to choose every implementation detail.
+Run `templates --json` to see complete layouts and included interactions. When a user chooses a template, keep that template's layout, spacing, typography, and responsive behavior. Do not redraw it or ask for cosmetic adjustments. `gallery` previews the same renderer and assets used by `create` and `scaffold`.
 
-The starter's Paperplane product is a runnable example. Change its title, copy, inputs, outputs and purchase promise when building another product. Ensure that a paid entitlement unlocks the thing the page actually offers. Keep a free product free when payments are not requested.
+Set the site brand, headline, description, accent, email, content items and event details with configuration. Use `configure --site-config FILE` for larger content sets. `configure` checks for user edits before changing generated files and project settings. Use `preferences` only when the user wants to change future-project defaults.
 
-When a reference URL or screenshot is provided, inspect it using an available browser or image tool. Describe the relevant layout, typography, spacing, color and interaction choices before adapting them. Avoid copying unrelated branding or claiming to have inspected an inaccessible reference.
+Show matching example previews and related reference links in conversation before resolving an unspecified frontend. Use `templates --type TYPE --json` and the actual running gallery URL. Frontend types include landing, admin, content, portfolio, commerce and event. The three landing choices are saas, pulse and studio; dashboard and console provide distinct admin workflows. Offer matching choices in conversation when needed: portfolio for work and contact; docs for searchable guides; directory for resources; dashboard for local tasks; event for an agenda and calendar; saas for a software homepage; store for the included brief kit; paperplane for the editor itself. Preserve an existing application's framework and source.
 
-For the default editorial direction, use warm neutral surfaces, strong readable type, one clear accent, ample spacing and visible interface states. Prioritize the task over decoration. Native CSS and SVG are sufficient where imagery adds no useful information.
+The complete templates include sample content and the listed interactions. Contacts, tasks, favorites and drafts are browser-local. An event calendar does not register attendees. An arbitrary product, shared team backend, login system or new workflow still needs implementation; do not label those capabilities as included.
 
-Before handoff, inspect the rendered product at desktop and narrow mobile widths. Exercise the main input-to-result path, the purchase button, a rejected or pending payment, and the paid result where applicable. Check keyboard access, focus indicators, form labels, overflow and readable error messages. Retain screenshots when the browser tooling supports them.
+Read a provided reference URL or screenshot only when the user requests a custom design. Record intentional differences from the selected template in `.opc/design-brief.md`. A custom design request can override the default template-preservation rule.
 
-`verify` checks only the invariants implemented by the CLI. Report browser checks independently, including any unavailable browser evidence. A screenshot alone does not establish that checkout or the core tool works.
+Inspect desktop and narrow mobile layouts and exercise the main workflow. Check keyboard focus, labels, empty states and error messages. Report browser evidence separately from CLI HTTP and payment checks.

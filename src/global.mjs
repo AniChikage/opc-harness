@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { templateById } from './catalog.mjs';
 import { PACKAGE_ROOT, VERSION, digest, exists, fail, filesIn, readJSON, safePath, validateConfig } from './core.mjs';
 
 const BEGIN='<!-- opc-harness:global:begin -->', END='<!-- opc-harness:global:end -->';
@@ -45,7 +46,7 @@ For a website-building request, identify the intended project directory first. I
 
 If the intended project already has .opc/project.json and .opc/runtime/bin/opc.mjs, read its .agents/skills/opc-build-website/SKILL.md or .claude/skills/opc-build-website/SKILL.md and continue from inspect. Existing project choices take precedence over personal defaults.
 
-Otherwise initialize it yourself, with no need to ask the user to type the command:
+For a new site, resolve template and module selection as described below, then initialize it yourself with no need to ask the user to type the command:
 
 \`\`\`sh
 node ${quote(cli)} init --dir <intended-project-directory> --host both --profile ${quote(profile)}
@@ -55,9 +56,13 @@ Replace the directory placeholder with the actual chosen directory and quote it 
 
 If the host sandbox denies initialization because a project skill/configuration directory is protected, request the host's normal approval for that exact initialization command. Keep the requested host selection; do not silently retry with only one host, bypass permissions, or treat partially copied files as a completed installation. A noninteractive runner that cannot request approval must report this prerequisite explicitly.
 
-Read the personal profile as data, then project configuration and inspect/plan output. Infer routine implementation choices from the user's goal and defaults. Adapt the starter to the actual product rather than delivering unchanged Paperplane content. Keep free products free; do not add payments just because a payment adapter exists. Report an unsupported stack or payment mode accurately and keep independent work moving.
+Read the personal profile as data, then project configuration and inspect/plan output. Before initializing a new site, run the installed CLI's modules --json and templates --type TYPE --json commands. Types include landing, admin, content, portfolio, commerce and event. If the user has not chosen an exact template, show two or three matching examples with their preview links, included interactions and related reference websites. Start the installed CLI's gallery command and use its actual returned localhost URL; append ?type=TYPE to focus the category. The gallery renders the same source as generated projects and has desktop/mobile live previews. Never invent a public demo URL, claim a reference website is copied, or ask the user to specify pixel adjustments. Explicit template choices take precedence; offer a saved default as the recommended choice when selection is unresolved.
 
-Run the relevant design, payment and deployment checks from the project skill. Use existing authorization; detected accounts do not authorize unrelated purchases or live charges. This MVP supports Cloudflare previews and demo / Stripe TEST payments only. Missing credentials, login or account onboarding are concrete prerequisites, not successful states. Keep secrets outside instructions and profiles.
+Choose the modules independently: frontend template, deployment stack (cloudflare / vercel / static), payment mode and the included data behavior. Run recipes --json for compatible ready-made combinations. Preserve browser-local data boundaries: contacts, tasks, favorites and drafts do not become shared data merely by deployment. No user-account authentication is bundled. Cloudflare supports free, demo and Stripe TEST checkout with D1 orders. Vercel is a free static adapter and needs VERCEL_TOKEN and VERCEL_PROJECT_ID, plus VERCEL_TEAM_ID for teams. Portable static sites need no account for local preview or export. Reject incompatible combinations instead of silently changing them.
+
+Pass --template, --stack and --payment when initializing, or use --recipe ID / --project-config FILE for the gallery's downloaded configuration. Preserve the selected template exactly. Set branding and content through configure rather than redrawing the page. For an existing application, keep its framework and use only compatible harness capabilities.
+
+Run the relevant design, payment and deployment checks from the project skill. Use existing authorization; detected accounts do not authorize unrelated purchases or live charges. Run deploy --dry-run, then deploy for a supported preview provider when authorized; static stacks use export --out DIR. Missing credentials, login or account onboarding are concrete prerequisites, not successful states. Report every missing configuration value together and continue independent frontend work. Keep secrets outside instructions, project profiles and exported configurations.
 
 Automatic selection depends on the host loading personal skills and instructions. Do not claim these instructions are a mandatory runtime hook. On resume, inspect current project state and evidence before repeating an external mutation.
 `;
@@ -76,10 +81,11 @@ export async function globalSetup(root,opts={}) {
   if(previous.schemaVersion!==1||!previous.files||!previous.blocks) fail('Invalid global install manifest.','INVALID_CONFIG');
   let profile=await readJSON(p.profile,null);
   if(profile&&opts.payment&&profile.payments?.mode!==opts.payment) fail('Existing personal profile is preserved. Edit it explicitly to change the payment default.','CONFIG_CONFLICT');
-  if(!profile) profile={schemaVersion:1,design:{preset:'editorial'},payments:{mode:opts.payment||'demo'},deploy:{provider:'cloudflare',tier:'preview'}};
+  if(profile&&opts.template&&opts.template!==(profile.design?.template||'paperplane'))fail('Existing personal profile is preserved. Edit it explicitly to change the template default.','CONFIG_CONFLICT');
+  if(!profile){const site={...opts.site,...(opts['site-config']?await readJSON(path.resolve(opts['site-config'])):{})};for(const key of ['brand','headline','description','accent'])if(opts[key]!==undefined)site[key]=opts[key];if(opts.email!==undefined)site.contactEmail=opts.email;profile={schemaVersion:1,design:{preset:'editorial',template:opts.template||'paperplane'},site,payments:{mode:opts.payment||templateById(opts.template||'paperplane')?.payment||'demo',...((opts.amount||opts.currency)?{product:{amount:Number(opts.amount||1900),currency:opts.currency||'usd'}}:{})},deploy:{provider:opts.stack||'cloudflare',tier:'preview'}};}
   validateConfig({...profile,name:'profile-validation'});
   const entries=new Map(),shared=new Set(),blocks={...previous.blocks};
-  for(const folder of ['bin','src','templates','skills']) for(const rel of await filesIn(path.join(PACKAGE_ROOT,folder))) entries.set(path.join(p.runtime,folder,rel),await fs.readFile(path.join(PACKAGE_ROOT,folder,rel)));
+  for(const folder of ['bin','src','templates','skills','scripts']) for(const rel of await filesIn(path.join(PACKAGE_ROOT,folder))) entries.set(path.join(p.runtime,folder,rel),await fs.readFile(path.join(PACKAGE_ROOT,folder,rel)));
   for(const file of ['package.json','package-lock.json','npm-shrinkwrap.json']) if(await exists(path.join(PACKAGE_ROOT,file))) entries.set(path.join(p.runtime,file),await fs.readFile(path.join(PACKAGE_ROOT,file)));
   const cli=path.join(p.runtime,'bin/opc.mjs'),instructions={},skillPaths={};
   for(const h of hosts) {

@@ -2,11 +2,7 @@
 
 <h1 align="center">OPC Harness</h1>
 
-<p align="center">Describe the website. Keep your defaults. Ship with evidence.</p>
-
-<p align="center">
-  <a href="#getting-started">Get started</a> · <a href="#how-it-works">How it works</a> · <a href="docs/website-example.md">Real example</a> · <a href="docs/configuration.md">Configuration</a> · <a href="CONTRIBUTING.md">Contributing</a> · <a href="LICENSE">MIT License</a>
-</p>
+<p align="center">See the website. Choose the modules. Ship the result.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/opc-harness"><img src="https://img.shields.io/npm/v/opc-harness?color=244b3e" alt="npm version"></a>
@@ -15,106 +11,153 @@
   <img src="https://img.shields.io/badge/Node.js-%E2%89%A522.13-244b3e" alt="Node.js 22.13 or later">
 </p>
 
-OPC Harness connects **Codex and Claude Code** to a repeatable website-building workflow: your design preferences, payment setup, Cloudflare deployment, and checks that show what actually works.
+OPC Harness gives **Codex and Claude Code** a reusable website delivery workflow. Choose a finished frontend by its actual appearance, combine a compatible stack and payment mode, then generate, run and verify the project.
 
-Configure it once. In a new project, describe the website you want. The agent loads your defaults, initializes the project, adapts the application, and continues through implementation and verification.
+Choose a finished layout instead of describing every visual detail. The gallery previews use the same renderer and assets as generated projects. Set your brand and content through configuration; the agent preserves the selected design.
 
-**Status: early MVP, v0.3.0.** The included stack is HTML/CSS/JavaScript, Cloudflare Workers + D1, and demo or Stripe **test** payments. It uses host instructions and Skills; it is not a mandatory runtime hook or a replacement for your coding agent. Accounts and credentials remain yours.
+**The next release, v0.5.0,** adds a visual module studio, eleven complete templates, eleven ready-made recipes, independent Cloudflare / Vercel / static stacks, downloadable project configuration and example-first agent instructions. All documentation, prompts and examples are in English.
 
-![Paperplane — the included English project brief website](docs/images/website.png)
-
-*The included English example: Paperplane, a project brief tool with free preview and demo checkout for Markdown export. The screenshots show the actual application with fictional sample data. Demo checkout collects no real payment. [Follow the walkthrough](docs/website-example.md).*
-
-## Features
-
-- **One setup, two agents** — install user-level entry Skills and instructions for Codex and Claude Code. Describe the next website without manually initializing every project.
-- **Personal defaults** — keep design, payment mode, and hosting choices in a reusable profile. Existing projects retain their own configuration.
-- **A working starting point** — generate a responsive paid-tool application with a free preview, Checkout, server-confirmed entitlements, and a Markdown download. The agent adapts it to your product.
-- **Server-confirmed payment delivery** — demo mode for development, or Stripe-hosted test Checkout with signed Webhooks, amount/currency matching, and durable duplicate handling.
-- **Cloudflare delivery** — package, provision D1, migrate, deploy the Worker, and verify its project identity and build fingerprint. Record resource ownership for later deployments.
-- **Checks you can inspect** — separate HTTP checks, payment tests, packaging, and deployment evidence. Source changes mark earlier evidence as stale; browser acceptance remains a distinct check.
-- **Work you can resume** — project-local configuration, instructions, runtime, and evidence let the next session inspect the current state before acting.
-
-## Getting started
-
-You need **Node.js 22.13+**, npm, and an installed, authenticated Codex or Claude Code. Deployment needs your Cloudflare account; Stripe test mode needs your own Stripe testing environment. The harness itself does not need a model API key.
-
-### 1. Install once
+> Release availability: npm `latest` was verified as **0.3.0** on November 9, 2026. Version 0.5.0 is being prepared in this source branch and is not published. To try the new studio now, use the source-checkout commands below; the pinned npm commands apply after publication.
 
 ```sh
-npx --yes opc-harness@latest setup --global --host both
+git clone --branch codex/module-studio https://github.com/AniChikage/opc-harness.git
+cd opc-harness
+node bin/opc.mjs gallery
+# Install this checkout into both agents when ready:
+node bin/opc.mjs setup --global --host both
 ```
 
-No source checkout or global npm installation is required. Setup copies a standalone runtime into your user directory and adds marked instructions for both agents. That runtime works independently of the npx cache. Setup preserves existing personal instructions, backs up changed files, and leaves model configuration and credentials alone. Review target paths first by adding `--dry-run --json`.
+![OPC Harness module studio](docs/images/module-studio.png)
 
-To install this exact release, replace `@latest` with `@0.3.0`. To update later, run the same setup command again. See [configuration](docs/configuration.md) for individual hosts, a persistent CLI, and project-only installation.
+[Module guide and compatibility matrix](docs/modules.md) · [Complete frontend examples](docs/templates.md)
 
-### 2. Describe a website
+## Start once
 
-Start a **new Codex or Claude Code session** in your projects folder and say:
-
-```text
-Build an English project requirements website for independent consultants.
-Offer a free preview and paid Markdown export.
-Use my defaults and complete design, payment testing, and a Cloudflare preview deployment.
-```
-
-The personal Skill directs the agent to choose a project directory, initialize it, read its plan, and carry out the work. Missing login or credentials become specific prerequisites while independent work continues.
-
-Automatic selection depends on the host loading the installed user instructions and Skills. If an existing session has not refreshed them, start a new one or explicitly ask it to use `opc-harness`. Host permissions and project instructions still apply.
-
-### 3. Keep working in the project
+Requires **Node.js 22.13+**, npm, and an installed, authenticated Codex or Claude Code.
 
 ```sh
-cd /path/to/your-site
-node .opc/runtime/bin/opc.mjs inspect --json
-node .opc/runtime/bin/opc.mjs plan --json
-node .opc/runtime/bin/opc.mjs dev --port 8787
+npx --yes opc-harness@0.5.0 setup --global --host both
 ```
 
-Open `http://127.0.0.1:8787`. Without an existing application, `dev` generates the starter and applies local D1 migrations. For an existing app, inspect before scaffolding: conflicting edits are reported rather than overwritten.
-
-Prefer explicit project installation? See [manual setup](docs/configuration.md#project-only-installation). Global setup is optional.
-
-## How it works
+Start a new agent session and describe the website:
 
 ```text
-Your request + personal profile
-              ↓
-Codex / Claude Code loads the entry Skill
-              ↓
-Project configuration + shared website Skill
-              ↓
-Design → implement → test payments → deploy → verify
-              ↓
-Project-local evidence with a source fingerprint
+Build a portfolio for my independent design studio.
+Show me the matching example websites, let me choose a frontend and stack,
+and use that design exactly. Keep it free and deploy a Cloudflare preview.
 ```
 
-The coding agent makes product and design decisions. The shared Skill defines the workflow. The CLI handles repeatable operations such as initialization, configuration inspection, resource checks, and deployment. Browser and real Stripe acceptance use the agent's available tools when the CLI does not automate that step.
+The installed Skill uses your profile, offers matching layouts when needed, creates the intended project, and follows its local workflow. An exact user-selected template proceeds directly; an unresolved frontend is shown as matching examples, with a saved default highlighted when applicable. Existing applications retain their framework and instructions.
 
-| Area | Included in v0.3.0 |
-| --- | --- |
-| Hosts | Codex and Claude Code user instructions + Skills |
-| Frontend | Buildless HTML, CSS, and JavaScript; one `editorial` preset |
-| Backend | Cloudflare Worker and D1 |
-| Payments | Demo and Stripe TEST, one-time purchase |
-| Hosting | Cloudflare preview deployment |
-| Evidence | HTTP, demo payment, package and deployment records; agent-recorded browser/Stripe acceptance |
+Setup copies a standalone runtime that survives npx cache removal, preserves unrelated personal instructions, and backs up changed files. Add `--dry-run --json` to inspect paths first. Automatic selection depends on the host loading its instructions and Skills; use a new session after installation.
 
-Existing frameworks and project instructions take precedence. The included recipe does not provide adapters for every framework.
+## Or choose directly
+
+Browse the actual templates:
+
+```sh
+npx --yes opc-harness@0.5.0 gallery
+```
+
+Choose and generate interactively:
+
+```sh
+npx --yes opc-harness@0.5.0 create --interactive
+```
+
+Or use one explicit command:
+
+```sh
+npx --yes opc-harness@0.5.0 create \
+  --dir ./my-studio --name my-studio --template portfolio \
+  --brand 'North Star Studio' --email hello@example.com --host both
+cd my-studio
+node .opc/runtime/bin/opc.mjs dev
+```
+
+Without `--dir`, `create` uses a new `my-website` subdirectory. The command generates the website, local runtime, and both project Skills together. No model API key, hosting account, or payment account is required to create or preview a free site.
+
+## Eleven complete templates
+
+| Template | Use it for | Included behavior |
+| --- | --- | --- |
+| `paperplane` | Project brief tool | Preview, autosave, checkout, Markdown export |
+| `saas` | Software homepage | Product walkthrough, pricing, FAQ, brief workspace |
+| `portfolio` | Studio or personal work | Category filters, project details, email contact |
+| `docs` | Documentation | Guide search, article navigation, outline copying |
+| `directory` | Curated resources | Search, category filters, details, saved favorites |
+| `dashboard` | Personal task workspace | Create/delete tasks, change status, filter, export CSV |
+| `store` | Digital brief kit | Product page, FAQ, complete brief editor and export |
+| `event` | Event homepage | Agenda filters, session details, calendar download |
+| `pulse` | Bold product landing | Interactive workflow preview, feature tabs, brief workspace |
+| `studio` | Service landing | Service selection, project details, email inquiries |
+| `console` | Personal contact admin | Create/edit/delete contacts, stages, search, CSV export |
+
+Each template includes responsive layouts, keyboard focus, English sample content, and working controls. Local data is labeled accurately: tasks, favorites, and drafts are saved in the browser. Add your own product-specific backend when you need shared accounts, team data, or additional business workflows.
+
+[Template catalog and configuration](docs/templates.md) · [English paid-tool walkthrough](docs/website-example.md)
+
+## Compose the modules
+
+Choose frontend, stack, content, data and payments separately. The studio shows exact template previews, desktop/mobile modes, included functionality and related example websites before generation. Copy a command, download a configuration, or copy an agent prompt.
+
+| Stack | Runtime and output | Payments |
+| --- | --- | --- |
+| Cloudflare | Buildless frontend + Worker; D1 for orders | Free, demo, Stripe test |
+| Vercel | Complete static frontend in your selected project | Free |
+| Portable static | Complete frontend and folder export | Free |
+
+Browser-local tasks, contacts, drafts and favorites remain local. Shared user accounts and authentication are additional backend work.
+
+```sh
+# From this checkout; use opc-harness after the new version is published.
+node bin/opc.mjs create --dir ./my-launch --recipe bold-launch --host both
+node bin/opc.mjs create --dir ./my-admin --recipe personal-admin --host both
+node bin/opc.mjs create --dir ./my-site --project-config ./opc-project.json --host both
+node bin/opc.mjs templates --type landing --json
+node bin/opc.mjs modules --json
+```
+
+The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The studio can also be shared as a static website using `gallery --out DIR`.
+
+[Read the module guide](docs/modules.md) for combinations, prerequisites, verification and extension points.
+
+## Configure once, reuse later
+
+Choose a default for future websites:
+
+```sh
+npx --yes opc-harness@0.5.0 preferences --interactive
+```
+
+Or configure a generated project:
+
+```sh
+node .opc/runtime/bin/opc.mjs configure \
+  --brand 'North Star Studio' --headline 'Useful design for thoughtful people.'
+node .opc/runtime/bin/opc.mjs configure --site-config ./site.json
+```
+
+The site JSON supports branding, headline, description, accent, contact email, content items, and event details. Template selection lives in `design.template`; payment and hosting choices stay in the same profile. [See examples](docs/templates.md#configure-without-editing-html-or-css).
+
+`configure --template ID` switches an untouched template safely. Edited files are reported before any configuration changes. Existing projects keep their choices when personal defaults change.
 
 ## Payments and deployment
 
-The starter uses a **$19 USD** example product. The agent may adapt the server-side product and create a matching Stripe test Price for your website.
-
-| Mode | What it proves |
+| Choice | Behavior |
 | --- | --- |
-| `demo` | Simulated checkout → server confirmation → entitlement → download. No Stripe transaction. |
-| `stripe_test` | Requires an actual Stripe test Checkout, a signed event delivered to this deployment, and verified export. |
+| `none` | Free export, no checkout, no payment database |
+| `demo` | Simulated checkout, server confirmation, entitlement, download |
+| `stripe_test` | Stripe-hosted test Checkout, signed webhook, durable fulfillment |
 
-`payments test` automates the demo path. In Stripe mode it reports that a real test transaction is needed; it does not simulate a successful Stripe payment. The agent must complete and record that external flow separately. A success-page redirect alone never grants access.
+Paid templates default to a $19 USD example product. Set the amount and currency through configuration, then supply an exactly matching Stripe test Price:
 
-Cloudflare commands run from the generated project:
+```sh
+node .opc/runtime/bin/opc.mjs configure --amount 2900 --currency cny
+node .opc/runtime/bin/opc.mjs doctor --json
+```
+
+`doctor` reports local prerequisites together. Stripe test mode requires your testing environment and three server values: `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, and `STRIPE_WEBHOOK_SECRET`. The harness reports their presence without printing them. Deployment requires your Cloudflare login or environment credentials.
 
 ```sh
 node .opc/runtime/bin/opc.mjs deploy --dry-run --json
@@ -122,55 +165,55 @@ node .opc/runtime/bin/opc.mjs deploy --json
 node .opc/runtime/bin/opc.mjs verify --url https://your-worker.workers.dev --json
 ```
 
-Deployment creates real Cloudflare resources in your account. Keep its `.opc/resources.json` ownership record locally; deployment does not adopt an unknown same-name resource. Local D1 and remote D1 are separate databases. [Payment setup and deployment details](docs/configuration.md#stripe-test-payments).
+Free deployments skip D1 entirely. Paid deployments provision or validate the owned database, migrate it, upload the Worker, and verify source identity. Unknown same-name resources are refused. Keep the private `.opc/resources.json` record for later deployments.
 
-## An English example
+For another static host, export a free site:
 
-The [Paperplane walkthrough](docs/website-example.md) shows the included starter with this English request:
-
-```text
-Build a simple project brief website for independent makers.
-Let visitors preview a brief for free and purchase Markdown export access.
-Use an editorial design and verify the demo checkout before deployment.
+```sh
+node .opc/runtime/bin/opc.mjs export --out ../static-site
 ```
 
-**Free preview → demo checkout → server-confirmed entitlement → Markdown download.** The draft stays in the browser; the starter checks export access with the server and generates Markdown from the current draft. Demo checkout is a simulation, clearly labeled in the application.
+Paid static exports are refused. [Payment setup, ownership, and deployment details](docs/configuration.md).
 
-Real Stripe test Checkout and signed Webhook delivery were separately exercised in a custom application. See the [verification record](docs/verification.md) for the distinction between package checks, the English demo, and that external acceptance.
+## What is verified
+
+The regression suite covers both host entries, all eight generators, preserved edits, safe configuration changes, free deployments without D1, configurable pricing, payment transactions, signatures, idempotency, and resource ownership.
+
+The package smoke check installs the actual tarball in an isolated home, removes the npx cache, generates every template with the copied runtime, verifies saved defaults, and repeats setup without changes. Browser acceptance is recorded separately from API tests and packaging.
+
+[Verification details](docs/verification.md) · [GitHub Actions](https://github.com/AniChikage/opc-harness/actions)
 
 ## Development
 
 ```sh
+git clone https://github.com/AniChikage/opc-harness.git
+cd opc-harness
 npm ci
 npm test
 npm run check
 npm run check:release
 npm run test:package
-npm pack --dry-run
+node bin/opc.mjs gallery
 ```
-
-The CLI is plain ESM JavaScript. Tests use Node's test runner and actual SQLite for payment queries and transactions; they do not require Stripe keys or a Cloudflare account. Dependency archives are pinned through the public npm registry.
 
 | Path | Responsibility |
 | --- | --- |
-| `src/global.mjs` | User-level installation, profiles, backups and rollback |
-| `src/workflows.mjs` | Project setup, verification, payment checks and deployment |
-| `src/core.mjs` | Configuration, managed writes, fingerprints and evidence |
-| `skills/opc-build-website/` | Shared workflow and design/payment/deployment references |
-| `templates/paid-site/` | The working starter |
-| `test/` | CLI, installation, payment and deployment regression tests |
-| `scripts/` | English release checks and isolated package installation checks |
+| `src/catalog.mjs`, `src/pages.mjs`, `src/render.mjs` | Template catalog, complete pages, deterministic generation |
+| `src/interactive.mjs`, `src/gallery.mjs` | Terminal selection and exact browser previews |
+| `src/global.mjs` | Host setup, profiles, backups, and rollback |
+| `src/workflows.mjs`, `src/core.mjs` | Configuration, generation, payment, deployment, and evidence |
+| `templates/` | Bundled frontend assets and Worker/D1 payment backend |
+| `skills/opc-build-website/` | Shared workflow for both coding agents |
+| `test/`, `scripts/` | Regression, release, and package installation checks |
 
-## Current limits
+## Current scope
 
-- Live payments, settlement, subscriptions, automatic merchant signup, and Vercel deployment are outside this MVP.
-- Agent routing is instruction-based; it depends on the host and its permission policy. Installation is local to each machine.
-- The `editorial` preset is a starting direction. Reference matching and finished visual design need agent work and browser inspection.
-- Secrets belong in environment variables, an ignored `.dev.vars`, or Worker Secrets, never in a profile, Skill, or public evidence.
-- macOS installation and both host entry paths have been exercised. Native Windows installation is not yet verified; CI covers the Node test suite separately.
+The automated backend recipe is Cloudflare Workers, with D1 only for payments. Static free sites can use other static hosts. Live payments, subscriptions, merchant onboarding, user authentication, and shared team storage are not included. The gallery does not claim that sample content is your finished business or that arbitrary new functionality appears without implementation.
 
-Bug reports, focused fixes, and reproducible examples are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/AniChikage/opc-harness/issues).
+Templates preserve their exact shipped design. Explicit redesigns, existing frameworks, and product-specific behavior remain coding-agent work. Credentials belong in environment variables, an ignored `.dev.vars`, or Worker Secrets. Installation is local to each machine; native Windows host setup has not yet been verified.
 
 ## License
 
 [MIT](LICENSE). Dependencies retain their own licenses. Codex, Claude Code, Stripe, and Cloudflare are third-party products; OPC Harness is an independent project.
+
+Focused fixes and reproducible reports are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/AniChikage/opc-harness/issues).
