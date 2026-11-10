@@ -16,3 +16,7 @@ examples/*/.opc/
 examples/*/.wrangler/
 examples/*/.dev.vars*
 examples/
+
+dist/
+
+web/.build/

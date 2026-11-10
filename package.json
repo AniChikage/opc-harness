@@ -27,22 +27,27 @@
     "node": ">=22.13"
   },
   "files": [
-    "bin",
-    "src",
-    "templates",
-    "skills",
+    "bin/opc.mjs",
+    "dist/bin/opc.mjs",
+    "dist/src",
+    "dist/templates",
+    "dist/skills",
+    "dist/scripts/check-syntax.mjs",
+    "dist/package.json",
+    "dist/npm-shrinkwrap.json",
     "README.md",
     "CONTRIBUTING.md",
     "docs",
-    "npm-shrinkwrap.json",
-    "LICENSE",
-    "scripts/check-syntax.mjs"
+    "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "check": "node scripts/check-syntax.mjs",
-    "check:release": "node scripts/check-release.mjs",
-    "test:package": "node scripts/smoke-package.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.json && node dist/scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/test/*.test.mjs",
+    "check": "npm run typecheck && npm run build && node dist/scripts/check-syntax.mjs",
+    "check:release": "npm run build && node dist/scripts/check-release.mjs",
+    "test:package": "npm run build && node dist/scripts/smoke-package.mjs",
     "prepack": "npm run check"
   },
   "publishConfig": {
@@ -52,5 +57,9 @@
   "dependencies": {
     "wrangler": "4.156.2"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "7.0.2"
+  }
 }

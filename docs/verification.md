@@ -1,5 +1,63 @@
 # Verification record
 
+## v0.5.0 web workspace separation — November 10, 2026
+
+The website and Studio source now live in the private `web/` workspace, with independent development, build, strict checks and tests. The root package retains only the harness implementation, generated-project templates and the built Studio assets used by `gallery`. Homepage markup, motion code and font assets are excluded from the npm archive.
+
+The split preserves all 144 regression cases as 131 harness tests and 13 web tests. Both suites and strict checks passed. The actual package smoke test additionally verifies that marketing files are absent, installed `site` reports the separate source workspace, and offline gallery export still works for all templates. The old source-checkout `site` command delegates to `web/` and its custom-folder export was exercised.
+
+The rebuilt website passed desktop/mobile template interactions, seven homepage viewport sizes and the complete animation check again. The release includes separately packaged harness and static website assets. These checks preserve the external-integration limits recorded below.
+
+## TypeScript migration — November 10, 2026
+
+This is local acceptance of the prepared v0.5.0 source and npm tarball, not a new npm publication or remote deployment.
+
+| Check | Observed result |
+| --- | --- |
+| Strict TypeScript | `strict: true` covers the CLI, shared contracts, browser modules, payment Worker, tests and release/build scripts. No `any` annotations, `@ts-ignore` or `@ts-nocheck` bypasses were introduced. Four compile-only negative assertions verify unsupported contracts are rejected. |
+| Regression suite | 144/144 passed on Node.js 22.13.1, 24.22.2 and 26.7.0 on macOS. The pre-migration baseline was 142/142; added checks cover malformed configuration boundaries and the Studio's browser name pattern. |
+| Build | TypeScript emits `.mjs` / `.js` into `dist/`; the build assembles templates, fonts, skills and portable runtime metadata. The existing `bin/opc.mjs` launcher and copied runtime CLI paths are preserved. |
+| npm installation | The actual tarball was installed through npx into an isolated home for both hosts, on Node 22.13.1 and Node 26.7.0. Removing its npx cache did not break generation. All 11 templates and 11 recipes were generated. Repeating setup changed zero files. |
+| Consumer dependencies | A copied project's CLI automatically installed pinned Wrangler with development dependencies omitted, completed a real local deployment dry run and passed its emitted-JavaScript checks. TypeScript, Node type definitions, ts-node and tsx were absent from that runtime. |
+| Package contents | Compiled CLI, browser and Worker code, skills, fonts and assets are included. TypeScript sources and test fixtures are excluded. Product-site and catalogue exports and packaged documentation links were checked. |
+| Existing installations | Upgrading an isolated installation made by the previous JavaScript implementation preserved personal defaults, both host entries and an edited existing page. The upgraded project-local CLI ran independently and repeated setup changed zero files. |
+| Payment persistence | The signed Stripe-event, idempotency, entitlement, negative-path and rollback tests passed against real SQLite with controlled provider responses. A real local Wrangler/D1 demo also passed all eight checkout-to-delivery checks. |
+| Browser payment path | The generated storefront's workspace completed demo checkout, confirmed server-side access, retained the edited draft and downloaded Markdown. The saved file was read and contained the current idea, audience, outcome and launch checklist. |
+
+### Browser acceptance
+
+The flow under test was the compiled product site → catalogue selection and live branding → generated-template interactions, plus a separate local demo checkout → confirmed access → actual Markdown download. Browser tooling used isolated headless Chrome through Playwright, following the previously authorized local fallback after the connected-browser timeout. Browser requests were restricted to `http://127.0.0.1:8788`.
+
+| Check | Result |
+| --- | --- |
+| Page identity and content | Correct titles, headings and meaningful content; no blank pages or framework error overlays. |
+| Responsive layout | All 11 templates at 1488px and 390px, plus homepage checks at seven viewport sizes from 320px to 1488px. No page-level horizontal overflow. |
+| Homepage animation | Two complete six-second cycles, 751 synchronized samples, all Design / Payments / Deployment stages, six manual prompts, earlier harness completion and both final completion states. Reduced motion and keyboard tab navigation passed. |
+| Studio | Category filters, template selection, live brand/headline/description preview, mobile preview, compatible recipe selection and downloaded project configuration passed. The actual downloaded JSON was parsed and checked. |
+| Template behavior | Brief generation/persistence, portfolio filtering, detail dialogs, directory favorites/search, documentation navigation/search, SaaS walkthrough, Orbit tabs, task and contact CRUD/persistence/CSV contents, and calendar file contents passed. |
+| Console | No application exceptions or console errors in the final pass. Trusted local preview iframes retain the existing browser warning about combining `allow-scripts` with `allow-same-origin`. |
+| Screenshot evidence | Captured homepage desktop/mobile views, all 22 template/viewport combinations, Studio live branding, confirmed demo access and successful Markdown export. Screenshots use fictional local data. |
+
+The final browser pass also caught an existing Studio project-name pattern that newer Chrome rejected. The pattern now escapes the hyphen correctly; a regression checks both valid slugs and unsafe names.
+
+### Reproduce
+
+```sh
+npm ci
+npm run typecheck
+npm run check
+npm test
+npm run check:release
+npm run test:package
+npm pack --dry-run
+npm --prefix web run dev -- --port 8788
+```
+
+`test:package` uses an actual archive and isolated host directories. It never installs into the developer's personal agent configuration. Runtime source code lives in `.mts` / `.ts`; generated projects and npm consumers continue to run JavaScript without a TypeScript compiler.
+
+This pass did not initiate a new external Stripe transaction, remote Cloudflare/Vercel deployment, or Codex/Claude model session. Provider contracts, actual local execution and host installation are separate evidence. Native Windows host setup remains unverified. CI is configured to run strict checking, the compiled tests and package smoke checks on Linux with Node 22 and 24; local results do not claim a new remote CI run.
+
+
 ## v0.5.0 development branch — November 9, 2026
 
 This record distinguishes the prepared source from a published package. npm `latest` was checked live and remains **0.3.0**. Version 0.5.0 is not an npm release or a verified remote Vercel deployment.

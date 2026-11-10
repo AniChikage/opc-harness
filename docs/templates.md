@@ -28,7 +28,7 @@ Contacts, favorites, drafts, and task data live in the visitor's browser. The da
 npx --yes opc-harness@0.5.0 gallery
 ```
 
-For this source branch, run `node bin/opc.mjs gallery` before npm publication. Open the reported local URL. Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Gallery checkout is disabled; payment acceptance runs in the generated project.
+From the source checkout, run `npm ci`, then `npm --prefix web run dev` to open the independent website. Open the reported local URL for the product site; the catalogue lives at `/studio/`. `node bin/opc.mjs gallery` serves the catalogue alone for agent sessions that only need to choose a layout. Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Catalogue checkout is disabled; payment acceptance runs in the generated project.
 
 ![The module studio](images/module-studio.png)
 
@@ -105,6 +105,24 @@ node .opc/runtime/bin/opc.mjs configure \
 Configuration and generated files are checked together. A user-edited template file blocks the update before the project or Worker configuration changes. There is no overwrite flag. Keep customized applications and make deliberate changes in their own code instead.
 
 A project with an existing deployment ownership record cannot change payment modes through this shortcut; moving a deployed product between free and paid needs an explicit migration.
+
+## Keep the chosen design
+
+When the user says "use this style", the selected layout, typography, spacing and interactions are the product. Scaffolding records a design lock in `.opc/design-lock.json`: a structural signature for every generated page plus the generated style and behavior files. Text, brand values and the accent color are configuration and never count as drift.
+
+Check it at any time:
+
+```sh
+node .opc/runtime/bin/opc.mjs design --json
+```
+
+`ok: true` means the generated site still matches the selected design. A non-empty `drifted` list names files whose structure, classes, styles or behavior changed. Restore those files, or accept a deliberate redesign explicitly:
+
+```sh
+node .opc/runtime/bin/opc.mjs design --accept
+```
+
+`verify` and `doctor` report the same `design-preserved` check, so a finished site cannot claim success while the chosen design was silently replaced.
 
 ## Reuse defaults
 

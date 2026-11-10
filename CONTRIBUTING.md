@@ -8,14 +8,20 @@ Focused fixes, documentation improvements, and reproducible bug reports are welc
 git clone https://github.com/AniChikage/opc-harness.git
 cd opc-harness
 npm ci
+npm run typecheck
+npm run build
 npm test
 npm run check
 npm run check:release
 npm run test:package
+npm --prefix web run typecheck
+npm --prefix web test
 npm pack --dry-run
 ```
 
-Use Node.js 22.13 or later. Automated tests do not require payment credentials or a Cloudflare account.
+Use Node.js 22.13 or later. Edit `.mts` and `.ts` sources, then rebuild; `dist/` and `bin/opc.mjs` are generated. Keep `strict` enabled and model untrusted JSON as `unknown` until validated. Do not bypass errors with `any` or TypeScript suppression comments. The intentional `@ts-expect-error` assertions in the compile-only contract test verify that invalid values remain rejected. Automated tests do not require payment credentials or a Cloudflare account.
+
+The root package owns the harness runtime, generated-project templates and integrations. Keep marketing pages, Studio markup/styles, website-only assets and website tests in `web/`. Its private package has independent build, development, test and export commands. The root build only compiles the shared catalogue into runtime assets; it never builds or ships the marketing homepage.
 
 ## Report a problem
 
@@ -44,6 +50,6 @@ Keep documentation, prompts, examples, and screenshots in English. Use screensho
 
 ## Pull requests
 
-Describe the user-visible problem, resulting behavior, and validation. Include a concrete reproduction when helpful. Public CI runs the isolated tests, syntax checks, and packaging; external Stripe/Cloudflare acceptance needs separate evidence and your own test resources.
+Describe the user-visible problem, resulting behavior, and validation. Include a concrete reproduction when helpful. Public CI runs strict type checking, the compiled test suite, emitted JavaScript syntax checks, and actual tarball installation; external Stripe/Cloudflare acceptance needs separate evidence and your own test resources.
 
 Contributions are distributed under the repository's [MIT license](LICENSE).

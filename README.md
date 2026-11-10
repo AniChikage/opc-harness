@@ -2,7 +2,7 @@
 
 <h1 align="center">OPC Harness</h1>
 
-<p align="center">See the website. Choose the modules. Ship the result.</p>
+<p align="center">Reusable website delivery for Codex and Claude Code.</p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/opc-harness"><img src="https://img.shields.io/npm/v/opc-harness?color=244b3e" alt="npm version"></a>
@@ -13,21 +13,22 @@
 
 OPC Harness gives **Codex and Claude Code** a reusable website delivery workflow. Choose a finished frontend by its actual appearance, combine a compatible stack and payment mode, then generate, run and verify the project.
 
-Choose a finished layout instead of describing every visual detail. The gallery previews use the same renderer and assets as generated projects. Set your brand and content through configuration; the agent preserves the selected design.
+Choose a finished layout instead of describing every visual detail. The site's catalogue previews use the same renderer and assets as generated projects. Set your brand and content through configuration; the agent preserves the selected design.
 
-**The next release, v0.5.0,** adds a visual module studio, eleven complete templates, eleven ready-made recipes, independent Cloudflare / Vercel / static stacks, downloadable project configuration and example-first agent instructions. All documentation, prompts and examples are in English.
+**Version 0.5.0** adds eleven complete templates, eleven ready-made recipes, Cloudflare / Vercel / static delivery, a visual module catalogue, design preservation and strict TypeScript throughout. Documentation, prompts and examples are in English.
 
-> Release availability: npm `latest` was verified as **0.3.0** on November 9, 2026. Version 0.5.0 is being prepared in this source branch and is not published. To try the new studio now, use the source-checkout commands below; the pinned npm commands apply after publication.
+> Distribution: v0.5.0 is available from this GitHub source/release. Its npm publication is separate; the version-pinned npm examples below require v0.5.0 to be published. To use this source now:
 
 ```sh
-git clone --branch codex/module-studio https://github.com/AniChikage/opc-harness.git
+git clone https://github.com/AniChikage/opc-harness.git
 cd opc-harness
-node bin/opc.mjs gallery
-# Install this checkout into both agents when ready:
+npm ci
+npm run build
 node bin/opc.mjs setup --global --host both
+node bin/opc.mjs gallery
 ```
 
-![OPC Harness module studio](docs/images/module-studio.png)
+The root project is the harness. The independent marketing website, live Studio source and their tests live under `web/`; see the [web workspace guide](https://github.com/AniChikage/opc-harness/tree/main/web). The npm package includes the generated template catalogue needed by `gallery`, without the product homepage, its animations or fonts.
 
 [Module guide and compatibility matrix](docs/modules.md) · [Complete frontend examples](docs/templates.md)
 
@@ -110,7 +111,7 @@ Choose frontend, stack, content, data and payments separately. The studio shows 
 Browser-local tasks, contacts, drafts and favorites remain local. Shared user accounts and authentication are additional backend work.
 
 ```sh
-# From this checkout; use opc-harness after the new version is published.
+# From this checkout; use opc-harness after the npm version is published.
 node bin/opc.mjs create --dir ./my-launch --recipe bold-launch --host both
 node bin/opc.mjs create --dir ./my-admin --recipe personal-admin --host both
 node bin/opc.mjs create --dir ./my-site --project-config ./opc-project.json --host both
@@ -118,7 +119,7 @@ node bin/opc.mjs templates --type landing --json
 node bin/opc.mjs modules --json
 ```
 
-The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The studio can also be shared as a static website using `gallery --out DIR`.
+The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The catalogue exports through `gallery --out DIR`. The independent product website builds into `web/dist` with `npm --prefix web run build`.
 
 [Read the module guide](docs/modules.md) for combinations, prerequisites, verification and extension points.
 
@@ -177,7 +178,7 @@ Paid static exports are refused. [Payment setup, ownership, and deployment detai
 
 ## What is verified
 
-The regression suite covers both host entries, all eight generators, preserved edits, safe configuration changes, free deployments without D1, configurable pricing, payment transactions, signatures, idempotency, and resource ownership.
+The regression suite covers both host entries, all eleven templates, design-lock drift detection, preserved edits, safe configuration changes, free deployments without D1, configurable pricing, payment transactions, signatures, idempotency, and resource ownership.
 
 The package smoke check installs the actual tarball in an isolated home, removes the npx cache, generates every template with the copied runtime, verifies saved defaults, and repeats setup without changes. Browser acceptance is recorded separately from API tests and packaging.
 
@@ -185,26 +186,37 @@ The package smoke check installs the actual tarball in an isolated home, removes
 
 ## Development
 
+The harness and web workspace use TypeScript with `strict: true`, including the CLI, browser code, payment Worker, tests and release tooling. Node ESM sources use `.mts`; browser sources use `.ts`.
+
 ```sh
 git clone https://github.com/AniChikage/opc-harness.git
 cd opc-harness
 npm ci
+npm run typecheck
+npm run build
 npm test
 npm run check
 npm run check:release
 npm run test:package
 node bin/opc.mjs gallery
+# Optional website development:
+npm --prefix web run dev
 ```
 
 | Path | Responsibility |
 | --- | --- |
-| `src/catalog.mjs`, `src/pages.mjs`, `src/render.mjs` | Template catalog, complete pages, deterministic generation |
-| `src/interactive.mjs`, `src/gallery.mjs` | Terminal selection and exact browser previews |
-| `src/global.mjs` | Host setup, profiles, backups, and rollback |
-| `src/workflows.mjs`, `src/core.mjs` | Configuration, generation, payment, deployment, and evidence |
+| `src/catalog.mts`, `src/pages.mts`, `src/render.mts` | Template catalog, complete pages, deterministic generation |
+| `src/design.mts` | Design lock and drift detection for the selected layout |
+| `src/interactive.mts`, `src/gallery.mts` | Terminal selection, exact template previews and serving the built catalogue |
+| `web/` | Separate private website workspace: homepage, Studio source, assets, tests and static export |
+| `src/global.mts` | Host setup, profiles, backups, and rollback |
+| `src/workflows.mts`, `src/core.mts` | Configuration, generation, payment, deployment, and evidence |
 | `templates/` | Bundled frontend assets and Worker/D1 payment backend |
 | `skills/opc-build-website/` | Shared workflow for both coding agents |
-| `test/`, `scripts/` | Regression, release, and package installation checks |
+| `src/types.mts`, `types/` | Shared configuration, provider, browser and runtime contracts |
+| `test/`, `scripts/` | Strictly checked regression, release, build and package installation checks |
+
+`npm run build` emits the portable JavaScript runtime into `dist/` and refreshes the compatibility launcher at `bin/opc.mjs`. Rebuild after editing TypeScript. The npm tarball includes compiled `.mjs` / `.js` and runtime assets; users do not need TypeScript, ts-node or a build step. Global and project-local installations keep their existing CLI paths and work independently of the original checkout or npx cache.
 
 ## Current scope
 

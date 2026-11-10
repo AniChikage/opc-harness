@@ -13,7 +13,7 @@ Use the user's request and the project's existing choices to deliver a working w
 2. Run `node .opc/runtime/bin/opc.mjs plan --json`. Reconcile its capability plan with the actual request. Add payments only when the product requires them; preserve the existing framework and user choices when updating a site.
 3. Resolve routine choices from the request and project configuration. Ask only for a missing fact that materially changes the implementation or a required external action. Reuse authorization already given in this conversation. Continue independent work while an external prerequisite is missing.
 
-The harness provides complete buildless HTML/CSS/JavaScript templates grouped by frontend type: landing, admin, content, portfolio, commerce and event. Run `modules --json`, `recipes --json` and `templates --type landing --json` for current choices. Before choosing an unresolved frontend, start `gallery`, use its actual returned URL, and show two or three relevant complete examples with their included interactions and related example websites. Use `?type=landing` or another type to focus the gallery. Its live desktop/mobile previews use the generated source; third-party reference links are inspiration, not copied implementations. An exact user selection needs no repeated confirmation.
+The harness provides complete buildless HTML/CSS/JavaScript templates grouped by frontend type: landing, admin, content, portfolio, commerce and event. Run `modules --json`, `recipes --json` and `templates --type landing --json` for current choices. Before choosing an unresolved frontend, start `site` and use its catalogue URL (`<reported-url>/studio/`), or start `gallery` for the catalogue alone. Show two or three relevant complete examples with their included interactions and related example websites. Use `?type=landing` or another type to focus the catalogue. Its live desktop/mobile previews use the generated source; third-party reference links are inspiration, not copied implementations. An exact user selection needs no repeated confirmation.
 
 Select frontend, stack, data and payments independently. `--stack cloudflare` supports free, demo and Stripe test checkout; D1 stores orders only. `--stack vercel` deploys a free static preview to the explicitly configured project. `--stack static` provides local preview and portable export. Use `recipes --json` for tested compatible combinations or `--project-config FILE` to use the downloaded studio configuration. Incompatible payment/stack combinations must fail explicitly. Preserve existing frameworks when updating applications.
 
@@ -28,6 +28,15 @@ Browser-local contacts, tasks, favorites and drafts are not shared user data. No
 - For preview or publishing, read [deployment](references/deployment.md). Use `deploy --dry-run` to validate packaging before a remote deployment.
 
 Load only the references relevant to the current task. Use available tools directly when the harness does not implement an operation; explain any remaining incompatibility rather than marking the operation complete.
+
+## Accept a chosen design in one step
+
+When the user names a design, points at an OPC example, or says "use this website's style", treat that as the complete design decision. Do not ask design questions, do not present alternatives, and do not redesign.
+
+1. Resolve the exact template ID with `templates --json` or the running gallery. Use that ID unchanged.
+2. Generate or configure with it (`create --template ID`, or `configure --template ID` in an existing project). Change brand, content and behavior only.
+3. Run `node .opc/runtime/bin/opc.mjs design --json`. `ok: true` means the generated files still match the selected design. If `ok` is false, report the drifted files and stop: restore them, or ask the user whether a deliberate redesign is intended. Never run `design --accept` on your own initiative.
+4. `verify` and `doctor` include the same `design-preserved` check. Report its result when you report completion.
 
 ## Verify and resume
 

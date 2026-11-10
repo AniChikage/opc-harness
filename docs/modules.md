@@ -4,6 +4,8 @@
 
 Start with a result you can inspect. Open the studio, compare complete example websites, and select a frontend before choosing infrastructure.
 
+Build a source checkout first with `npm ci` and `npm run build`. Published npm installations already include the compiled runtime.
+
 ```sh
 node bin/opc.mjs gallery
 node bin/opc.mjs modules --json
@@ -124,4 +126,4 @@ Serve this folder at an HTTP(S) origin root to share every example, its assets, 
 
 ## Extend the library
 
-`src/modules.mjs` is the shared module and recipe catalog. `src/catalog.mjs` describes templates and references; `src/pages.mjs` and `templates/library/` supply their complete implementations. The CLI, terminal wizard, visual studio and agent Skills consume these same definitions. Add a new provider only with its configuration rules, runnable adapter, prerequisite report, scoped verification and meaningful failure tests.
+`src/modules.mts` is the shared module and recipe catalog. `src/catalog.mts` describes templates and references; `src/pages.mts` and `templates/library/` supply their complete implementations. The CLI, terminal wizard, visual studio and agent Skills consume these same definitions. Add a new provider only with its configuration rules, runnable adapter, prerequisite report, scoped verification and meaningful failure tests.

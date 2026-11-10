@@ -1,6 +1,6 @@
 # Configuration
 
-See [the module guide](modules.md) for stack choices and downloadable project configurations. The new v0.5.0 examples refer to the prepared source branch until publication; run `node bin/opc.mjs` from that checkout to try them now. and delivery
+See [the module guide](modules.md) for stack choices and downloadable project configurations. The new v0.5.0 examples refer to the prepared source branch until publication; run `npm ci` and `npm run build`, then `node bin/opc.mjs` from that checkout to try them now.
 
 [README](../README.md)
 
