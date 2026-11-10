@@ -48,7 +48,7 @@ try {
   }
   await fs.rm(cache, { recursive: true, force: true });
   const cli = path.join(home, '.local/share/opc-harness/runtime/bin/opc.mjs');
-  await assert.rejects(run(process.execPath,[cli,'site','--json']), /WEB_WORKSPACE_REQUIRED/);
+  await assert.rejects(run(process.execPath,[cli,'site','--json']), /Unknown command: site/);
   const project = path.join(work, 'english-project');
   await run(process.execPath, [cli, 'init', '--dir', project, '--name', 'english-project', '--host', 'both', '--brief', 'An English project brief website with a free preview and Markdown export.', '--json']);
   await run(process.execPath, [cli, 'scaffold'], project);

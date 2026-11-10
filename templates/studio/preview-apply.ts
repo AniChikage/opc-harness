@@ -1,4 +1,4 @@
-import type { SiteContent } from '../../../src/types.mjs';
+import type { SiteContent } from '../../src/types.mjs';
 /** Minimal DOM contract also used by deterministic preview tests. */
 export interface PreviewElement {
   tagName?: string; nodeName?: string; textContent?: string | null;

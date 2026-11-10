@@ -1,6 +1,14 @@
 # Verification record
 
-## v0.5.0 web workspace separation — November 10, 2026
+## Repository separation — November 10, 2026
+
+Current source is split between [opc-harness](https://github.com/AniChikage/opc-harness) and [opc-harness-web](https://github.com/AniChikage/opc-harness-web). This repository builds and tests without any website checkout. The offline Studio is a harness capability; its source and preview tests live with the CLI. The marketing homepage, fonts, animation, website server and website CI are maintained independently.
+
+The website consumes the published v0.5.0 harness archive through a pinned dependency and invokes `gallery --out DIR` to obtain catalogue data, preview pages and the selection UI. It does not import private harness modules or require a sibling directory. Existing public tags and release artifacts remain historical snapshots.
+
+The 142 harness regression cases include the offline preview and project-name checks returned from the former web workspace. Actual tarball installation, both host entries, cache independence and gallery export are checked by `npm run test:package`. Website acceptance is recorded in [its own repository](https://github.com/AniChikage/opc-harness-web/blob/main/docs/verification.md). Earlier observations below describe their original revision and layout.
+
+## Historical v0.5.0 web workspace separation — November 10, 2026
 
 The website and Studio source now live in the private `web/` workspace, with independent development, build, strict checks and tests. The root package retains only the harness implementation, generated-project templates and the built Studio assets used by `gallery`. Homepage markup, motion code and font assets are excluded from the npm archive.
 

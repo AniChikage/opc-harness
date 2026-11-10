@@ -8,7 +8,6 @@ import {selectionOptions} from './selection.mjs';
 import {TEMPLATES,REFERENCES,templateById} from './catalog.mjs';
 import {chooseOptions} from './interactive.mjs';
 import {gallery} from './gallery.mjs';
-import {runWeb} from './web-command.mjs';
 const HELP = `opc-harness ${VERSION} — Codex + Claude Code website delivery
 
 opc setup --global [--host both|codex|claude] [--profile FILE] [--payment demo|stripe_test]
@@ -16,7 +15,6 @@ opc modules [--json]                   List frontend, stack, data and payment mo
 opc recipes [--json]                   List ready-to-run module combinations
 opc templates [--template ID] [--type landing|admin|content] [--json]   List complete templates and included interactions
 opc gallery [--port 8788] [--out DIR]               Browse exact local template previews
-opc site [--port 8790] [--out DIR]                  Source checkout only: run the independent web workspace
 opc create [--interactive] [--recipe ID] [--stack cloudflare|vercel|static] [--project-config FILE] [--template ID] [--dir DIR] [--brand TEXT] [--payment none|demo|stripe_test]
 opc configure [--interactive] [--template ID] [--brand TEXT] [--headline TEXT] [--site-config FILE]
 opc preferences [--interactive] [--template ID] [--profile FILE]   Set defaults for future projects
@@ -46,7 +44,7 @@ export async function run(argv: string[]) {
   const [command,subcommand,...rest] = positional;
   for(const key of ['template','brand','headline','description','accent','email','site-config'])if(flags[key]!==undefined&&!['setup','init','create','configure','preferences',...(key==='template'?['templates']:[])].includes(command))fail(`--${key} does not apply to ${command}.`,'INVALID_ARGUMENT');
   if((flags.amount||flags.currency)&&!['init','create','configure','setup','preferences'].includes(command))fail('--amount and --currency apply to project or profile configuration.','INVALID_ARGUMENT');
-  if(flags.out&&!['export','gallery','site'].includes(command))fail('--out applies to export, gallery or site.','INVALID_ARGUMENT');
+  if(flags.out&&!['export','gallery'].includes(command))fail('--out applies to export or gallery.','INVALID_ARGUMENT');
   if(flags['dry-run']&&!['setup','configure','preferences','deploy'].includes(command))fail('--dry-run applies to setup, configure, preferences or deploy.','INVALID_ARGUMENT');
   if(flags['reuse-database-from']&&command!=='deploy') fail('--reuse-database-from applies only to deploy.','INVALID_ARGUMENT');
   if(flags.accept&&command!=='design') fail('--accept applies only to design.','INVALID_ARGUMENT');
@@ -69,7 +67,6 @@ export async function run(argv: string[]) {
   else if(command==='recipes')result={ok:true,recipes:RECIPES};
   else if (command==='templates') {const selected=flags.template?templateById(flags.template):null;if(flags.template&&!selected)fail('Unknown template ID. Run opc templates.','INVALID_ARGUMENT');if(flags.type&&!FRONTENDS.some(x=>x.id===flags.type))fail('Unknown frontend type. Run opc modules.','INVALID_ARGUMENT');const templates=(selected?[selected]:TEMPLATES).filter(t=>!flags.type||frontendFor(t.id)?.id===flags.type);result={ok:true,templates:templates.map(t=>({...t,type:frontendFor(t.id)?.id,preview:'/templates/'+t.id+'/',references:REFERENCES[t.id]||[]}))};}
   else if (command==='gallery') return gallery(flags);
-  else if (command==='site') return runWeb(flags);
   else if (command==='doctor') result=await workflows.doctor(root);
   else if (command==='design') result=await workflows.design(root,flags);
   else if (command==='export') result=await workflows.exportSite(root,flags);

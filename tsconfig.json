@@ -30,8 +30,7 @@
     "test/**/*.mts",
     "templates/**/*.ts",
     "templates/**/*.mts",
-    "types/**/*.d.ts",
-    "web/assets/studio/**/*.ts"
+    "types/**/*.d.ts"
   ],
   "exclude": [
     "dist",

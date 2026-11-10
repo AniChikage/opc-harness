@@ -14,14 +14,12 @@ npm test
 npm run check
 npm run check:release
 npm run test:package
-npm --prefix web run typecheck
-npm --prefix web test
 npm pack --dry-run
 ```
 
 Use Node.js 22.13 or later. Edit `.mts` and `.ts` sources, then rebuild; `dist/` and `bin/opc.mjs` are generated. Keep `strict` enabled and model untrusted JSON as `unknown` until validated. Do not bypass errors with `any` or TypeScript suppression comments. The intentional `@ts-expect-error` assertions in the compile-only contract test verify that invalid values remain rejected. Automated tests do not require payment credentials or a Cloudflare account.
 
-The root package owns the harness runtime, generated-project templates and integrations. Keep marketing pages, Studio markup/styles, website-only assets and website tests in `web/`. Its private package has independent build, development, test and export commands. The root build only compiles the shared catalogue into runtime assets; it never builds or ships the marketing homepage.
+This repository owns the harness runtime, generated-project templates, offline template picker and integrations. Marketing pages, homepage animation, website fonts and website tests belong in [opc-harness-web](https://github.com/AniChikage/opc-harness-web). Do not add a sibling checkout requirement, website build step or website-only CI job here. The public `gallery --out DIR` export is the boundary used by the separate website; keep it compatible with offline selection and generated templates.
 
 ## Report a problem
 

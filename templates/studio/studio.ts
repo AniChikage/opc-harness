@@ -1,4 +1,4 @@
-import type { StudioCatalog, StudioTemplate } from '../../../src/types.mjs';
+import type { StudioCatalog, StudioTemplate } from '../../src/types.mjs';
 import { applyPreviewConfig } from "./preview-apply.js";
 const catalog = await (await fetch("/catalog.json")).json() as StudioCatalog;
 interface Selectors {

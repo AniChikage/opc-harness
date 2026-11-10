@@ -28,7 +28,7 @@ node bin/opc.mjs setup --global --host both
 node bin/opc.mjs gallery
 ```
 
-The root project is the harness. The independent marketing website, live Studio source and their tests live under `web/`; see the [web workspace guide](https://github.com/AniChikage/opc-harness/tree/main/web). The npm package includes the generated template catalogue needed by `gallery`, without the product homepage, its animations or fonts.
+This repository contains the harness only: agent setup, template generation, the offline selection interface, payments and deployment adapters. The independent product website lives in [opc-harness-web](https://github.com/AniChikage/opc-harness-web). Building or installing the harness does not require that repository.
 
 [Module guide and compatibility matrix](docs/modules.md) · [Complete frontend examples](docs/templates.md)
 
@@ -119,7 +119,7 @@ node bin/opc.mjs templates --type landing --json
 node bin/opc.mjs modules --json
 ```
 
-The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The catalogue exports through `gallery --out DIR`. The independent product website builds into `web/dist` with `npm --prefix web run build`.
+The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The catalogue exports through `gallery --out DIR`. The independent [website repository](https://github.com/AniChikage/opc-harness-web) builds its own static output and consumes a pinned harness showcase export.
 
 [Read the module guide](docs/modules.md) for combinations, prerequisites, verification and extension points.
 
@@ -186,7 +186,7 @@ The package smoke check installs the actual tarball in an isolated home, removes
 
 ## Development
 
-The harness and web workspace use TypeScript with `strict: true`, including the CLI, browser code, payment Worker, tests and release tooling. Node ESM sources use `.mts`; browser sources use `.ts`.
+The harness uses TypeScript with `strict: true`, including the CLI, browser code, payment Worker, tests and release tooling. Node ESM sources use `.mts`; browser sources use `.ts`.
 
 ```sh
 git clone https://github.com/AniChikage/opc-harness.git
@@ -199,8 +199,6 @@ npm run check
 npm run check:release
 npm run test:package
 node bin/opc.mjs gallery
-# Optional website development:
-npm --prefix web run dev
 ```
 
 | Path | Responsibility |
@@ -208,7 +206,7 @@ npm --prefix web run dev
 | `src/catalog.mts`, `src/pages.mts`, `src/render.mts` | Template catalog, complete pages, deterministic generation |
 | `src/design.mts` | Design lock and drift detection for the selected layout |
 | `src/interactive.mts`, `src/gallery.mts` | Terminal selection, exact template previews and serving the built catalogue |
-| `web/` | Separate private website workspace: homepage, Studio source, assets, tests and static export |
+| `src/studio.mts`, `templates/studio/` | Offline template selection UI used by the CLI and exported showcase |
 | `src/global.mts` | Host setup, profiles, backups, and rollback |
 | `src/workflows.mts`, `src/core.mts` | Configuration, generation, payment, deployment, and evidence |
 | `templates/` | Bundled frontend assets and Worker/D1 payment backend |

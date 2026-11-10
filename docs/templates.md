@@ -28,7 +28,7 @@ Contacts, favorites, drafts, and task data live in the visitor's browser. The da
 npx --yes opc-harness@0.5.0 gallery
 ```
 
-From the source checkout, run `npm ci`, then `npm --prefix web run dev` to open the independent website. Open the reported local URL for the product site; the catalogue lives at `/studio/`. `node bin/opc.mjs gallery` serves the catalogue alone for agent sessions that only need to choose a layout. Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Catalogue checkout is disabled; payment acceptance runs in the generated project.
+From this source checkout, run `npm ci`, `npm run build` and `node bin/opc.mjs gallery` to open the offline catalogue. The product homepage and its own development server live in [opc-harness-web](https://github.com/AniChikage/opc-harness-web). Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Catalogue checkout is disabled; payment acceptance runs in the generated project.
 
 ![The module studio](images/module-studio.png)
 

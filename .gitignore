@@ -18,5 +18,3 @@ examples/*/.dev.vars*
 examples/
 
 dist/
-
-web/.build/

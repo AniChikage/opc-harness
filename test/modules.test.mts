@@ -346,3 +346,12 @@ test("portable exports carry the current source identity for later verification"
   assert.equal(identity.provider, "static");
   assert.equal(identity.buildId, build.buildId);
 });
+
+test("studio project names use a valid browser pattern and reject unsafe names", async () => {
+  const html = (await galleryEntries())["index.html"].toString();
+  const pattern = html.match(/id="project"[^>]*pattern="([^"]+)"/)?.[1];
+  assert.ok(pattern);
+  const expression = new RegExp('^(?:' + pattern + ')$', 'v');
+  for (const name of ['my-website', 'typed-studio', 'abc', 'a'.repeat(46)]) assert.equal(expression.test(name), true);
+  for (const name of ['ab', 'UPPER', '../outside', 'my site', 'a'.repeat(47)]) assert.equal(expression.test(name), false);
+});

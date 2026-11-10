@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPreviewConfig, type PreviewElement } from '../assets/studio/preview-apply.js';
+import { applyPreviewConfig, type PreviewElement } from '../templates/studio/preview-apply.js';
 interface ElementFixture extends PreviewElement {
   tagName: string; textContent: string; innerHTML: string; childElementCount: number; children: ElementFixture[];
   style: {properties: Map<string,string>;setProperty(name:string,value:string):void};

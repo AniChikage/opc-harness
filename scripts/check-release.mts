@@ -11,7 +11,7 @@ if (pkg.publishConfig?.registry !== 'https://registry.npmjs.org/' || pkg.publish
 for (const entry of Object.values(lock.packages)) if (entry.resolved && new URL(entry.resolved).hostname !== 'registry.npmjs.org') throw new Error('Dependency archives must use the public npm registry.');
 
 const names = ['README.md', 'CONTRIBUTING.md'];
-for (const dir of ['bin', 'src', 'skills', 'templates', 'test', 'scripts', 'docs', 'types', 'web']) names.push(...(await filesIn(path.join(root, dir))).filter(file => !file.startsWith('.build/') && !file.startsWith('dist/') && /\.(mts|ts|mjs|js|json|html|css|svg|md|example)$/.test(file)).map(file => dir + '/' + file));
+for (const dir of ['bin', 'src', 'skills', 'templates', 'test', 'scripts', 'docs', 'types']) names.push(...(await filesIn(path.join(root, dir))).filter(file => !file.startsWith('.build/') && !file.startsWith('dist/') && /\.(mts|ts|mjs|js|json|html|css|svg|md|example)$/.test(file)).map(file => dir + '/' + file));
 for (const file of names) {
   const text = await fs.readFile(path.join(root, file), 'utf8');
   if (/\p{Script=Han}/u.test(text)) throw new Error('Release text must be English: ' + file);

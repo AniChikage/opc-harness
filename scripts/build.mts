@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { studioPage } from '../web/src/studio.mjs';
+import { studioPage } from '../src/studio.mjs';
 import { TEMPLATES } from '../src/catalog.mjs';
 import { FRONTENDS } from '../src/modules.mjs';
 
@@ -20,8 +20,6 @@ async function copyAssets(source: string, destination: string): Promise<void> {
 await copyAssets(path.join(root, 'templates'), path.join(output, 'templates'));
 await copyAssets(path.join(root, 'skills'), path.join(output, 'skills'));
 const studio = path.join(output, 'templates/studio');
-await copyAssets(path.join(root, 'web/assets/studio'), studio);
-for (const file of ['studio.js', 'preview-apply.js']) await fs.copyFile(path.join(output, 'web/assets/studio', file), path.join(studio, file));
 const ordered = FRONTENDS.flatMap(group => group.templates.map(id => TEMPLATES.find(template => template.id === id)!));
 await fs.writeFile(path.join(studio, 'index.html'), studioPage(ordered));
 const pkg = JSON.parse(await fs.readFile(path.join(root, 'package.json'), 'utf8')) as Record<string, unknown>;
