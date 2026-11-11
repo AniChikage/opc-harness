@@ -663,6 +663,7 @@ main {
   border: 0;
   background: #fff;
   transform-origin: top left;
+  pointer-events: none;
 }
 
 .preview-label {

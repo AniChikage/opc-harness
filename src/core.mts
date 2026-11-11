@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { templateById } from './catalog.mjs';
 import { stackById } from './modules.mjs';
 export const PACKAGE_ROOT = fileURLToPath(new URL('../', import.meta.url));
-export const VERSION = '0.6.0';
+export const VERSION = '0.6.1';
 export const ZERO_ID = '00000000-0000-0000-0000-000000000000';
 export class HarnessError extends Error {
   constructor(message: string, public code = 'OPC_ERROR', public details?: unknown) { super(message); }

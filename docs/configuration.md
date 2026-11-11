@@ -1,6 +1,6 @@
 # Configuration
 
-See [the module guide](modules.md) for stack choices and downloadable project configurations. These examples use v0.6.0. Source users should run `npm ci` and `npm run build`, then use `node bin/opc.mjs` from the checkout.
+See [the module guide](modules.md) for stack choices and downloadable project configurations. These examples use v0.6.1. Source users should run `npm ci` and `npm run build`, then use `node bin/opc.mjs` from the checkout.
 
 [README](../README.md)
 
@@ -12,7 +12,7 @@ Install once for both coding agents with Node.js 22.13 or later:
 npx --yes opc-harness@latest setup --global --host both
 ```
 
-Use `@0.6.0` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
+Use `@0.6.1` instead of `@latest` to pin this release. Add `--dry-run --json` to preview paths without changing the installation. Choose `--host codex` or `--host claude` to install for one agent only. Repeat setup to update the copied runtime; deleting the npx cache does not remove it.
 
 If you prefer a persistent command on your PATH:
 

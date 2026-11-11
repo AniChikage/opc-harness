@@ -72,7 +72,7 @@ Then start a new agent chat and say: `Build a website for a reading notebook. Us
 ## Choose visually
 
 ```sh
-npx --yes opc-harness@0.6.0 gallery
+npx --yes opc-harness@0.6.1 gallery
 ```
 
 From this source checkout, run `npm ci`, `npm run build` and `node bin/opc.mjs gallery` to open the offline catalogue. The product homepage and its own development server live in [opc-harness-web](https://github.com/AniChikage/opc-harness-web). Filter by category, open the actual template, or choose one and enter your brand and project folder to copy a generation command. Catalogue checkout is disabled; payment acceptance runs in the generated project.
@@ -86,13 +86,13 @@ From this source checkout, run `npm ci`, `npm run build` and `node bin/opc.mjs g
 ## Choose and generate in the terminal
 
 ```sh
-npx --yes opc-harness@0.6.0 create --interactive
+npx --yes opc-harness@0.6.1 create --interactive
 ```
 
 The wizard asks for a frontend category, template, brand, headline, stack, compatible payment mode, and contact email when relevant. Without `--dir`, creation uses a new `my-website` subdirectory. Use an explicit directory for other names:
 
 ```sh
-npx --yes opc-harness@0.6.0 create \
+npx --yes opc-harness@0.6.1 create \
   --dir ./studio --name studio --template portfolio \
   --brand 'North Star Studio' --email hello@example.com --host both
 cd studio
@@ -174,8 +174,8 @@ node .opc/runtime/bin/opc.mjs design --accept
 ## Reuse defaults
 
 ```sh
-npx --yes opc-harness@0.6.0 setup --global --host both --template portfolio --payment none
-npx --yes opc-harness@0.6.0 preferences --interactive
+npx --yes opc-harness@0.6.1 setup --global --host both --template portfolio --payment none
+npx --yes opc-harness@0.6.1 preferences --interactive
 ```
 
 Setup preserves an existing profile. `preferences` explicitly updates it, backs up the previous JSON, and affects future projects. Existing project choices remain independent.

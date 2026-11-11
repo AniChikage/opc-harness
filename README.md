@@ -15,9 +15,9 @@ OPC Harness gives **Codex and Claude Code** a reusable website delivery workflow
 
 Choose a finished layout instead of describing every visual detail. The site's catalogue previews use the same renderer and assets as generated projects. Set your brand and content through configuration; the agent preserves the selected design.
 
-**Version 0.6.0** includes **sixteen complete templates and sixteen ready-made recipes**, Cloudflare / Vercel / static delivery, a visual module catalogue, design preservation and strict TypeScript throughout. Documentation, prompts and examples are in English. Five new original landing styles are included: Petal, Gauge, Littlebrief, Letterline and Nocturne.
+**Version 0.6.1** includes **sixteen complete templates and sixteen ready-made recipes**, Cloudflare / Vercel / static delivery, a visual module catalogue, design preservation and strict TypeScript throughout. Documentation, prompts and examples are in English. Five new original landing styles are included: Petal, Gauge, Littlebrief, Letterline and Nocturne.
 
-Install both agent integrations with one command: `npx --yes opc-harness@0.6.0 setup --global --host both`. See the [v0.6.0 release notes](docs/releases/v0.6.0.md) for the new templates and compatibility details.
+Install both agent integrations with one command: `npx --yes opc-harness@0.6.1 setup --global --host both`. See the [v0.6.0 template release](docs/releases/v0.6.0.md) and [v0.6.1 preview fix](docs/releases/v0.6.1.md) for the new templates and compatibility details.
 
 To work from source:
 
@@ -39,7 +39,7 @@ This repository contains the harness only: agent setup, template generation, the
 Requires **Node.js 22.13+**, npm, and an installed, authenticated Codex or Claude Code.
 
 ```sh
-npx --yes opc-harness@0.6.0 setup --global --host both
+npx --yes opc-harness@0.6.1 setup --global --host both
 ```
 
 Start a new agent session and describe the website:
@@ -59,19 +59,19 @@ Setup copies a standalone runtime that survives npx cache removal, preserves unr
 Browse the actual templates:
 
 ```sh
-npx --yes opc-harness@0.6.0 gallery
+npx --yes opc-harness@0.6.1 gallery
 ```
 
 Choose and generate interactively:
 
 ```sh
-npx --yes opc-harness@0.6.0 create --interactive
+npx --yes opc-harness@0.6.1 create --interactive
 ```
 
 Or use one explicit command:
 
 ```sh
-npx --yes opc-harness@0.6.0 create \
+npx --yes opc-harness@0.6.1 create \
   --dir ./my-studio --name my-studio --template portfolio \
   --brand 'North Star Studio' --email hello@example.com --host both
 cd my-studio
@@ -135,7 +135,7 @@ The sixteen recipes choose compatible modules together. Explicit flags override 
 Choose a default for future websites:
 
 ```sh
-npx --yes opc-harness@0.6.0 preferences --interactive
+npx --yes opc-harness@0.6.1 preferences --interactive
 ```
 
 Or configure a generated project:
