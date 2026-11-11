@@ -1,6 +1,7 @@
 import type { StudioCatalog, StudioTemplate } from '../../src/types.mjs';
 import { applyPreviewConfig } from "./preview-apply.js";
 const catalog = await (await fetch("/catalog.json")).json() as StudioCatalog;
+const createCommand = catalog.createCommand || 'npx --yes opc-harness@' + catalog.version;
 interface Selectors {
   '#project': HTMLInputElement;
   '#brand': HTMLInputElement;
@@ -84,7 +85,12 @@ function applyToFrame(frame: HTMLIFrameElement | null) {
       const frameDocument = frame.contentDocument;
       if (!frameDocument || frameDocument.readyState === "loading") return;
       if (frame.id === "live-frame" && !dialog.open) return;
-      applyPreviewConfig(frameDocument, siteSettings());
+      const id = frame.id === 'live-frame' ? previewed.id : frame.closest<HTMLElement>('[data-template]')?.dataset.template;
+      const source = catalog.templates.find(template => template.id === id);
+      if (source) applyPreviewConfig(frameDocument, id === selected.id ? siteSettings() : {
+        brand: source.brand, headline: source.headline, description: source.descriptionText,
+        accent: source.accent, contactEmail: 'hello@example.com',
+      });
     } catch {
       // Cross-origin or sandboxed preview: keep the example unchanged.
     }
@@ -121,7 +127,7 @@ function addPreviewNote() {
   const note = document.createElement("span");
   note.className = "preview-note";
   note.setAttribute("data-preview-note", "");
-  note.textContent = "Preview uses your brand and copy.";
+  note.textContent = "Your brand settings apply to the selected template.";
   meta.append(note);
 }
 function update() {
@@ -141,8 +147,7 @@ function update() {
   required("#data-note").textContent = stack.data;
   required("#compatibility").textContent = "Compatible combination";
   required("#command").textContent =
-    "npx --yes opc-harness@" +
-    catalog.version +
+    createCommand +
     " create --dir " +
     quote("./" + config.name) +
     " --name " +
@@ -237,7 +242,7 @@ function filterTemplates() {
     const t = catalog.templates.find((t) => t.id === card.dataset.template)!;
     const visible =
       (filter === "all" || t.type === filter) &&
-      [t.id, t.name, t.description, ...t.features]
+      [t.id, t.name, t.description, ...t.features, ...t.references.flatMap(reference => [reference.name, reference.note])]
         .join(" ")
         .toLowerCase()
         .includes(query);
@@ -329,7 +334,7 @@ required("#download-config").onclick = () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   status(
-    "Config downloaded. Run: opc-harness create --dir ./" +
+    "Config downloaded. Run: " + createCommand + " create --dir ./" +
       required("#project").value +
       " --project-config ./opc-project.json --host both",
   );

@@ -12,7 +12,7 @@ import {
 } from "./core.mjs";
 
 const LOCK_FILE = ".opc/design-lock.json";
-const DESIGN_FILE = /\.(?:html|css|js|svg)$/i;
+const DESIGN_FILE = /\.(?:html|css|js|svg|woff2)$/i;
 // The rendered accent is configuration, not design. Normalize the injected
 // custom property before hashing so brand color changes never count as drift.
 const INJECTED_ACCENT =
@@ -68,6 +68,7 @@ export function designSignature(relative: string, content: string | Buffer) {
     return digest(structuralSignature(content));
   if (/\.css$/i.test(relative))
     return digest(String(content).replace(INJECTED_ACCENT, ":root{--accent}"));
+  if (/\.woff2$/i.test(relative)) return digest(content);
   return digest(String(content));
 }
 
@@ -82,7 +83,7 @@ export function designSnapshot(entries: Entries) {
         ? "structure"
         : relative.endsWith(".css")
           ? "style"
-          : "behavior",
+          : relative.endsWith('.woff2') ? 'asset' : "behavior",
       hash: designSignature(relative, content),
     };
   }

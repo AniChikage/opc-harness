@@ -1,10 +1,11 @@
 import type { PaymentMode } from '../../../src/types.mjs';
+import { consumeBrief } from './brief-handoff.js';
 interface BriefValues {idea:string;audience:string;outcome:string;title?:string}
 interface Brief extends BriefValues {title:string;scope:string[]}
 interface OrderCapability {orderId:string;token:string}
 interface ApiData {configured?:boolean;mode?:PaymentMode;status?:string;orderId?:string;token?:string;url?:string;entitlement?:{product?:string;downloadUrl?:string}|null;error?:string|{message?:string};message?:string}
 interface VerifiedOrder extends OrderCapability {status:'paid';mode?:PaymentMode;entitlement:{product?:string;downloadUrl:string}}
-const errorText = (error: unknown): string => error instanceof Error ? errorText(error) : String(error);
+const errorText = (error: unknown): string => error instanceof Error ? error.message : String(error);
 import { siteConfig } from '/site-config.js';
 interface Selectors {
   '#idea': HTMLTextAreaElement;
@@ -157,11 +158,14 @@ async function exportBrief(button: HTMLButtonElement) {
 async function workspace() {
   document.querySelectorAll<HTMLButtonElement>('[data-action="purchase"]').forEach(button=>{button.textContent=siteConfig.mode==='none'?'Free Markdown export':`Get export access — ${siteConfig.price}`;if(siteConfig.mode==='none')button.hidden=true;});
   if($('#export-caption'))required('#export-caption').textContent=siteConfig.mode==='none'?'Free export':`One-time access · ${siteConfig.price}`;
-  const saved = storage.get<BriefValues>('draft');
+  let incoming: BriefValues | null = null;
+  try { incoming = consumeBrief(sessionStorage, location.href); } catch { /* Storage can be disabled. */ }
+  const saved = incoming || storage.get<BriefValues>('draft');
   if (saved && typeof saved.idea === 'string' && typeof saved.audience === 'string' && typeof saved.outcome === 'string') {
     required('#idea').value = saved.idea; required('#audience').value = saved.audience; required('#outcome').value = saved.outcome;
   }
   renderBrief(createBrief(currentValues()));
+  if (incoming) message('#form-message', 'Your new brief is ready. Choose Create brief to save it in this browser. Your previous saved draft has not been replaced.');
   required('#brief-form').addEventListener('submit', (event) => {
     event.preventDefault();
     const values = currentValues();

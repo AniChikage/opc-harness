@@ -5,7 +5,7 @@ export const FRONTENDS: FrontendModule[] = [
     id: "landing",
     name: "Landing pages",
     description: "Product stories, walkthroughs and clear calls to action.",
-    templates: ["saas", "pulse", "studio"],
+    templates: ["petal", "gauge", "scribble", "letterline", "nocturne", "saas", "pulse", "studio"],
   },
   {
     id: "admin",
@@ -95,6 +95,11 @@ export const PAYMENT_MODULES: PaymentModule[] = [
   },
 ];
 export const RECIPES: Recipe[] = [
+  { id: 'soft-tool', name: 'Launch a quiet tool', description: 'A soft pink product page with a working brief preview.', template: 'petal', stack: 'static', payment: 'none' },
+  { id: 'data-launch', name: 'Lead with your product', description: 'A warm data-led landing with a live sample checklist.', template: 'gauge', stack: 'vercel', payment: 'none' },
+  { id: 'friendly-form', name: 'Start with a few questions', description: 'An airy form page with live preview and draft handoff.', template: 'scribble', stack: 'static', payment: 'none' },
+  { id: 'editorial-launch', name: 'Keep it editorial', description: 'Oversized type and focused sample project notes.', template: 'letterline', stack: 'static', payment: 'none' },
+  { id: 'dark-product', name: 'Show a polished walkthrough', description: 'A dark product page with an automatic three-stage demo.', template: 'nocturne', stack: 'vercel', payment: 'none' },
   {
     id: "product-launch",
     name: "Launch a product",

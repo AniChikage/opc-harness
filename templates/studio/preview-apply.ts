@@ -26,6 +26,7 @@ const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // the first selector that matches a text-only element is written, so a new
 // template must be added here explicitly instead of guessing with "first p".
 const DESCRIPTION_PARAGRAPHS = [
+  '[data-site-description]',
   "section.hero > p",
   "p.lead",
   ".orbit-hero > div > p",
@@ -120,7 +121,7 @@ function writeDescription(doc: PreviewDocument, description: string) {
   if (!description) return;
   const meta = selectOne(doc, 'meta[name="description"]');
   if (meta) writeAttribute(meta, "content", description);
-  for (const element of selectAll(doc, ".footer span"))
+  for (const element of selectAll(doc, ".footer > span"))
     writeText(element, description);
   for (const selector of DESCRIPTION_PARAGRAPHS) {
     const [paragraph] = selectAll(doc, selector);

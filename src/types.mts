@@ -37,7 +37,7 @@ export interface Recipe { id: string; name: string; description: string; templat
 export interface Reference { name: string; url: string; note: string; }
 export interface Check { name: string; pass: boolean; action?: string; error?: string; note?: string; drifted?: Drift[]; }
 export interface Drift { file: string; reason: string; }
-export interface DesignFile { kind: 'structure' | 'style' | 'behavior'; hash: string; }
+export interface DesignFile { kind: 'structure' | 'style' | 'behavior' | 'asset'; hash: string; }
 export interface DesignLock { schemaVersion: 1; template: string; files: Record<string, DesignFile>; }
 export interface EvidenceResult { ok: boolean; [key: string]: unknown; }
 export interface EvidenceRecord extends EvidenceResult { schemaVersion: number; kind: string; harnessVersion: string; nodeVersion: string; at: string; fingerprint: string; url?: string; buildId?: string; checks?: Check[]; status?: string; scope?: string; mode?: PaymentMode; stale?: boolean; evidence?: string; }
@@ -64,7 +64,7 @@ export interface HttpBody { ok?: boolean; app?: string; name?: string; mode?: st
 export interface ClientSiteConfig extends ResolvedSite { template?: string; mode: PaymentMode; price: string; product?: Product; items?: ContentItem[]; event?: EventContent; }
 
 export interface StudioTemplate extends TemplateDefinition { type: string; preview: string; references: Reference[]; }
-export interface StudioCatalog { version: string; templates: StudioTemplate[]; frontends: FrontendModule[]; stacks: StackModule[]; payments: PaymentModule[]; recipes: Recipe[]; }
+export interface StudioCatalog { version: string; createCommand?: string; templates: StudioTemplate[]; frontends: FrontendModule[]; stacks: StackModule[]; payments: PaymentModule[]; recipes: Recipe[]; }
 
 export interface DesignStatus {locked:boolean;ok:boolean;template:string|null;checked:number;drifted:Drift[];action?:string}
 export interface DesignAcceptance {ok:true;accepted:boolean;template:string;checked:number;note:string}

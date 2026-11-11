@@ -20,7 +20,7 @@ interface DocumentSpec {
 function makeDocument(spec:DocumentSpec={}) {
  const brands=spec.brands||[],mainHeading=spec.mainHeading||null,fallbackHeading=spec.heading||null,meta=spec.meta||null,footerSpans=spec.footerSpans||[],mailtos=spec.mailtos||[],paragraphs=spec.paragraphs||{};
  return {title:spec.title||'',documentElement:spec.documentElement===undefined?makeElement():spec.documentElement,body:spec.body===undefined?makeElement():spec.body,
-  querySelectorAll(selector:string){if(selector==='.brand')return brands;if(selector==='.footer span')return footerSpans;if(selector==='a[href^="mailto:"]')return mailtos;return paragraphs[selector]||[];},
+  querySelectorAll(selector:string){if(selector==='.brand')return brands;if(selector==='.footer > span')return footerSpans;if(selector==='a[href^="mailto:"]')return mailtos;return paragraphs[selector]||[];},
   querySelector(selector:string){if(selector==='main h1')return mainHeading;if(selector==='h1')return fallbackHeading||mainHeading;if(selector==='meta[name="description"]')return meta;return null;}};
 }
 
@@ -74,6 +74,16 @@ test("preview writes the text-only wordmark span of icon brands", () => {
   assert.equal(plainFooterBrand.textContent, copy.brand);
   assert.equal(icon.innerHTML, "<path></path>");
   assert.match(brand.innerHTML, /<svg><path><\/path><\/svg>/);
+});
+
+test('description overrides keep nested footer wordmarks and target the explicit landing description', () => {
+  const wordmark = makeElement({tagName:'span',text:'Littlebrief'});
+  const footer = makeElement({tagName:'a',childrenElements:[makeElement({tagName:'svg'}),wordmark]});
+  const description = makeElement({tagName:'p',text:'Original copy.'});
+  const doc = makeDocument({brands:[footer],paragraphs:{'.footer span':[wordmark],'[data-site-description]':[description]}});
+  applyPreviewConfig(doc,copy);
+  assert.equal(wordmark.textContent,copy.brand);
+  assert.equal(description.textContent,copy.description);
 });
 
 test("preview updates exactly one description paragraph from the known layouts", () => {

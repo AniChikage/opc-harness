@@ -19,6 +19,7 @@ export async function previewEntries() {
   );
   const catalog = {
     version: VERSION,
+    createCommand: 'opc-harness',
     templates: TEMPLATES.map((t) => ({
       ...t,
       type: frontendFor(t.id)!.id,
@@ -158,5 +159,11 @@ export async function serveEntries(entries: Entries, opts: Options = {}, scope =
 export async function gallery(opts: Options = {}) {
   const entries = await galleryEntries();
   if (opts.out) return serveEntries(entries, opts, "static-gallery-export");
+  // Run the same local runtime that rendered the preview, including unreleased
+  // source builds. A static export never contains a local filesystem path.
+  const catalog = JSON.parse(entries['catalog.json'].toString()) as { createCommand: string };
+  const launcher = path.join(PACKAGE_ROOT, 'bin/opc.mjs');
+  catalog.createCommand = 'node ' + "'" + launcher.replaceAll("'", "'\\''") + "'";
+  entries['catalog.json'] = JSON.stringify(catalog);
   return serveEntries(entries, { port: opts.port || 8788 }, "module-studio");
 }

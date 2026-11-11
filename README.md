@@ -15,9 +15,11 @@ OPC Harness gives **Codex and Claude Code** a reusable website delivery workflow
 
 Choose a finished layout instead of describing every visual detail. The site's catalogue previews use the same renderer and assets as generated projects. Set your brand and content through configuration; the agent preserves the selected design.
 
-**Version 0.5.0** adds eleven complete templates, eleven ready-made recipes, Cloudflare / Vercel / static delivery, a visual module catalogue, design preservation and strict TypeScript throughout. Documentation, prompts and examples are in English.
+**Version 0.6.0** includes **sixteen complete templates and sixteen ready-made recipes**, Cloudflare / Vercel / static delivery, a visual module catalogue, design preservation and strict TypeScript throughout. Documentation, prompts and examples are in English. Five new original landing styles are included: Petal, Gauge, Littlebrief, Letterline and Nocturne.
 
-> Distribution: v0.5.0 is available from this GitHub source/release. Its npm publication is separate; the version-pinned npm examples below require v0.5.0 to be published. To use this source now:
+Install both agent integrations with one command: `npx --yes opc-harness@0.6.0 setup --global --host both`. See the [v0.6.0 release notes](docs/releases/v0.6.0.md) for the new templates and compatibility details.
+
+To work from source:
 
 ```sh
 git clone https://github.com/AniChikage/opc-harness.git
@@ -37,7 +39,7 @@ This repository contains the harness only: agent setup, template generation, the
 Requires **Node.js 22.13+**, npm, and an installed, authenticated Codex or Claude Code.
 
 ```sh
-npx --yes opc-harness@0.5.0 setup --global --host both
+npx --yes opc-harness@0.6.0 setup --global --host both
 ```
 
 Start a new agent session and describe the website:
@@ -57,19 +59,19 @@ Setup copies a standalone runtime that survives npx cache removal, preserves unr
 Browse the actual templates:
 
 ```sh
-npx --yes opc-harness@0.5.0 gallery
+npx --yes opc-harness@0.6.0 gallery
 ```
 
 Choose and generate interactively:
 
 ```sh
-npx --yes opc-harness@0.5.0 create --interactive
+npx --yes opc-harness@0.6.0 create --interactive
 ```
 
 Or use one explicit command:
 
 ```sh
-npx --yes opc-harness@0.5.0 create \
+npx --yes opc-harness@0.6.0 create \
   --dir ./my-studio --name my-studio --template portfolio \
   --brand 'North Star Studio' --email hello@example.com --host both
 cd my-studio
@@ -78,10 +80,15 @@ node .opc/runtime/bin/opc.mjs dev
 
 Without `--dir`, `create` uses a new `my-website` subdirectory. The command generates the website, local runtime, and both project Skills together. No model API key, hosting account, or payment account is required to create or preview a free site.
 
-## Eleven complete templates
+## Sixteen complete templates
 
 | Template | Use it for | Included behavior |
 | --- | --- | --- |
+| `petal` | Soft native-tool landing | Editable brief preview, three writing modes, draft handoff |
+| `gauge` | Data-led product landing | Live sample checklist, computed readiness metrics and chart |
+| `scribble` | Friendly form landing | Original vector doodles, live three-question preview, draft handoff |
+| `letterline` | Minimal editorial landing | Oversized typography, expandable project notes, sample handoff |
+| `nocturne` | Premium dark product landing | Automatic three-stage walkthrough, step controls, reduced motion |
 | `paperplane` | Project brief tool | Preview, autosave, checkout, Markdown export |
 | `saas` | Software homepage | Product walkthrough, pricing, FAQ, brief workspace |
 | `portfolio` | Studio or personal work | Category filters, project details, email contact |
@@ -111,7 +118,7 @@ Choose frontend, stack, content, data and payments separately. The studio shows 
 Browser-local tasks, contacts, drafts and favorites remain local. Shared user accounts and authentication are additional backend work.
 
 ```sh
-# From this checkout; use opc-harness after the npm version is published.
+# From this checkout; use opc-harness for an installed package.
 node bin/opc.mjs create --dir ./my-launch --recipe bold-launch --host both
 node bin/opc.mjs create --dir ./my-admin --recipe personal-admin --host both
 node bin/opc.mjs create --dir ./my-site --project-config ./opc-project.json --host both
@@ -119,7 +126,7 @@ node bin/opc.mjs templates --type landing --json
 node bin/opc.mjs modules --json
 ```
 
-The eleven recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The catalogue exports through `gallery --out DIR`. The independent [website repository](https://github.com/AniChikage/opc-harness-web) builds its own static output and consumes a pinned harness showcase export.
+The sixteen recipes choose compatible modules together. Explicit flags override recipes; recipes override saved defaults. Vercel deployment needs `VERCEL_TOKEN` and `VERCEL_PROJECT_ID`, plus `VERCEL_TEAM_ID` for team projects. Cloudflare deployment preserves the existing ownership and recovery checks. The catalogue exports through `gallery --out DIR`. The independent [website repository](https://github.com/AniChikage/opc-harness-web) builds its own static output and consumes a pinned harness showcase export.
 
 [Read the module guide](docs/modules.md) for combinations, prerequisites, verification and extension points.
 
@@ -128,7 +135,7 @@ The eleven recipes choose compatible modules together. Explicit flags override r
 Choose a default for future websites:
 
 ```sh
-npx --yes opc-harness@0.5.0 preferences --interactive
+npx --yes opc-harness@0.6.0 preferences --interactive
 ```
 
 Or configure a generated project:
@@ -178,7 +185,7 @@ Paid static exports are refused. [Payment setup, ownership, and deployment detai
 
 ## What is verified
 
-The regression suite covers both host entries, all eleven templates, design-lock drift detection, preserved edits, safe configuration changes, free deployments without D1, configurable pricing, payment transactions, signatures, idempotency, and resource ownership.
+The regression suite covers both host entries, all sixteen templates, design-lock drift detection, preserved edits, safe configuration changes, free deployments without D1, configurable pricing, payment transactions, signatures, idempotency, and resource ownership.
 
 The package smoke check installs the actual tarball in an isolated home, removes the npx cache, generates every template with the copied runtime, verifies saved defaults, and repeats setup without changes. Browser acceptance is recorded separately from API tests and packaging.
 

@@ -1,5 +1,7 @@
 import type { TemplateDefinition, Reference, ResolvedSite } from './types.mjs';
+import { INDIE_TEMPLATES, INDIE_REFERENCES } from './indie-catalog.mjs';
 export const TEMPLATES: readonly TemplateDefinition[] = Object.freeze([
+  ...INDIE_TEMPLATES,
   {
     id: "paperplane",
     name: "Paperplane",
@@ -186,6 +188,7 @@ export function siteDefaults(id = "paperplane"): ResolvedSite | undefined {
 
 // References are independent examples to inspect, never a claim of copied source or affiliation.
 export const REFERENCES: Record<string, Reference[]> = {
+  ...INDIE_REFERENCES,
   saas: [
     {
       name: "Cal.com",

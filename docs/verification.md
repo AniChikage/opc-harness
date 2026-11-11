@@ -149,3 +149,17 @@ Earlier remote browser attempts in another browser path failed to connect. The l
 - Native Windows global installation, Vercel, or arbitrary frontend frameworks.
 
 Re-run affected checks when changing code, provider settings, or deployment configuration. A historical success does not establish the current state of an external service.
+
+
+## Five original landing templates — 2026-11-11
+
+The source catalogue now contains sixteen templates and sixteen recipes. This is source-build evidence, separate from any npm publication or marketing-site deployment.
+
+- The full regression suite passes 158 tests, including five-template generation, exact preview asset parity, source-brand exclusions, themed workspaces, design preservation after configuration, binary font drift detection, scoped single-use draft transfer, and footer wordmark preservation during preview overrides.
+- All five new templates were opened in Chrome at measured 1440px desktop and 390px mobile widths. Each page has its intended original heading and no document-level horizontal overflow. Inter is bundled locally; no source screenshots, videos, logos or illustrations are used.
+- Petal writing modes, Gauge checklist metrics and completion filtering, Littlebrief live form and draft handoff, Letterline expanded notes and sample handoff, and Nocturne manual steps and automatic scene changes were exercised. Nocturne captions, selected step and scene agree; its application frame keeps a stable height. Reduced-motion behavior is implemented; a forced reduced-motion browser run was not performed.
+- The studio was tested at 390px, supports reference-number and reference-name search, and applies custom brand/headline settings to the selected template. Other examples retain their own defaults. Footer wordmarks remain brands rather than being replaced by description copy.
+- A command produced by the studio generated a branded Littlebrief project with both agent entries. The project ran through its copied runtime and Cloudflare local runner. HTTP verification passed design preservation, Worker health, project identity, payment mode, payment configuration, page content and styles. No remote account was required for the free project.
+- The workspace Markdown export control reached its downloaded status in Chrome. Download-file retrieval through the browser tool timed out, so this pass does not claim independently inspected downloaded-file contents. Existing payment and export regressions remain separate evidence.
+
+The sample checklist is not analytics, the text modes do not call an AI service, the editorial notes do not imply newsletter delivery, and the animated walkthrough does not record video. Live payments and new remote deployments were not exercised for this frontend change.

@@ -144,7 +144,7 @@ test("unknown recipes and secret-bearing top-level blueprint fields are rejected
 test("all gallery previews use exactly the generated source and asset paths", async () => {
   const entries = await galleryEntries(),
     catalog = JSON.parse(entries["catalog.json"].toString());
-  assert.equal(catalog.templates.length, 11);
+  assert.equal(catalog.templates.length, 16);
   for (const template of catalog.templates) {
     const prefix = "templates/" + template.id + "/";
     const html = entries[prefix + "index.html"].toString();

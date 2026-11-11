@@ -28,7 +28,7 @@ Frontend and stack are separate. A contact admin can run on Vercel, Cloudflare o
 
 ## Frontend examples before configuration
 
-The studio includes eleven exact local examples, grouped into six frontend categories. Each card shows the website itself, included controls and a related reference link when available. Open a preview to interact with the site and switch between desktop and a 390px mobile layout. Open the example in a separate tab for an unscaled view.
+The studio includes sixteen exact local examples, grouped into six frontend categories. Each card shows the website itself, included controls and a related reference link when available. Open a preview to interact with the site and switch between desktop and a 390px mobile layout. Open the example in a separate tab for an unscaled view.
 
 Reference websites such as [Linear](https://linear.app/), [Cal.com](https://cal.com/), [shadcn/ui](https://ui.shadcn.com/examples/dashboard) and [Astro documentation](https://docs.astro.build/en/getting-started/) help compare interface patterns. They are independent sites, not bundled source, exact clones or affiliated products. The OPC example is the implementation that will be generated.
 

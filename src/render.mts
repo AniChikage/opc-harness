@@ -4,6 +4,8 @@ import path from "node:path";
 import { PACKAGE_ROOT, filesIn } from "./core.mjs";
 import { siteDefaults } from "./catalog.mjs";
 import { renderPage, escapeHTML } from "./pages.mjs";
+import { isIndieTemplate } from './indie-catalog.mjs';
+import { indieFavicon, indieMark } from './indie-pages.mjs';
 export async function templateEntries(config: ProjectConfig) {
   const entries: Entries = {};
   for (const file of await filesIn(
@@ -62,12 +64,26 @@ export async function templateEntries(config: ProjectConfig) {
     entries["public/workspace.css"] = entries["public/styles.css"];
     entries["public/workspace.html"] = workspace;
     entries["public/index.html"] = renderPage(config);
+    const assetFolder = isIndieTemplate(id) ? 'templates/indie' : 'templates/library';
     for (const file of await filesIn(
-      path.join(PACKAGE_ROOT, "templates/library"),
-    ))
+      path.join(PACKAGE_ROOT, assetFolder),
+    )) {
+      if (isIndieTemplate(id) && file.endsWith('.css') && !['styles.css', 'workspace-theme.css', `${id}.css`].includes(file)) continue;
       entries["public/" + file] = await fs.readFile(
-        path.join(PACKAGE_ROOT, "templates/library", file),
+        path.join(PACKAGE_ROOT, assetFolder, file),
       );
+    }
+    if (isIndieTemplate(id)) {
+      entries['public/favicon.svg'] = indieFavicon(id);
+      for (const file of Object.keys(entries).filter(file => file.endsWith('.html') && file !== 'public/index.html')) {
+        entries[file] = entries[file].toString()
+          .replace(/<body(?=[\s>])/, `<body class="template-${id}"`)
+          .replace(/(<a class="brand"[^>]*>)<svg[\s\S]*?<\/svg>/g, '$1' + indieMark(id))
+          .replace(/<link rel="icon" href="data:[^"]*">/g, '')
+          .replace('<p>Turn a rough idea into a focused project brief. Write, shape, and share — without the blank-page feeling.</p>', `<p>${escapeHTML(site.description)}</p>`)
+          .replace('</head>', '<link rel="stylesheet" href="/workspace-theme.css"></head>');
+      }
+    }
   } else {
     entries["public/index.html"] = workspace;
     entries["public/workspace.html"] = workspace;

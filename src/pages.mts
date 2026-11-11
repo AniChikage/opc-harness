@@ -1,13 +1,9 @@
 import type { ProjectConfig, ResolvedSite, ContentItem } from './types.mjs';
 import { siteDefaults, templateById } from "./catalog.mjs";
-export const escapeHTML = (value: unknown) =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    (x) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-        x as "&" | "<" | ">" | '"' | "'"
-      ],
-  );
+import { escapeHTML } from './html.mjs';
+import { isIndieTemplate } from './indie-catalog.mjs';
+import { renderIndiePage } from './indie-pages.mjs';
+export { escapeHTML } from './html.mjs';
 const e = escapeHTML;
 const button = (text: string, href = "/workspace.html") =>
   `<a class="button" href="${href}">${e(text)}</a>`;
@@ -240,5 +236,6 @@ export function renderPage(config: ProjectConfig) {
     s: ResolvedSite = { ...siteDefaults(id)!, ...config.site };
   const title = s.brand + " — " + s.headline,
     navigationItem = navigation[id];
+  if (isIndieTemplate(id)) return renderIndiePage(id, s);
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="${e(s.description)}"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="${e(s.accent)}"><title>${e(title)}</title><link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/styles.css"><script src="/library.js" type="module"></script></head><body class="template-${id}" data-template="${id}" style="--accent:${e(s.accent)}"><a class="skip-link" href="#main">Skip to content</a><header class="header"><a class="brand" href="/">${e(s.brand)}</a><nav aria-label="Main navigation"><a href="#main">${e(t.category)}</a><a href="${navigationItem[1]}">${navigationItem[0]}</a></nav>${button(navigationItem[2], id === "portfolio" || id === "studio" ? "mailto:" + e(s.contactEmail) : id === "pulse" ? "/workspace.html" : id === "console" ? "#contact-form" : id === "dashboard" ? "#task-form" : navigationItem[1])}</header><main id="main">${layouts[id](s)}</main><footer class="footer"><a class="brand" href="/">${e(s.brand)}</a><span>${e(s.description)}</span><a href="mailto:${e(s.contactEmail)}">Contact</a></footer><dialog id="detail-dialog" aria-labelledby="detail-title"><button class="dialog-close" data-close aria-label="Close details">Close</button><h2 id="detail-title"></h2><p id="detail-description"></p></dialog></body></html>`;
 }
